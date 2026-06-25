@@ -59,12 +59,7 @@ namespace Tartisians.Gameplay.Progression
 
         void HandleLevelUp()
         {
-            List<UpgradeDefinition> choices = RollChoices();
-            if (choices.Count > 0)
-            {
-                ApplyUpgrade(choices[0]); // M5: 자동 선택. M6에서 UI 3택으로 대체.
-            }
-
+            // 레벨업을 알리기만 한다. 후보 제시·적용은 GameDirector/HUD가 담당(시간정지 3택).
             EventBus<LevelUpEvent>.Raise(new LevelUpEvent { NewLevel = _xp.Level });
         }
 

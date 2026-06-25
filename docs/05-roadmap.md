@@ -210,9 +210,11 @@
 - ✅ **M2 플레이어 완료** — Data(PlayerDefinition)·Gameplay asmdef 신설, InputReader(New Input System), PlayerController(Rigidbody 이동, 순수 PlayerMovement 분리), Health/HealthState(IDamageable), Cinemachine 쿼터뷰 CameraRig, Player 프리팹·Game 씬. 테스트 22/22(EditMode 18+PlayMode 4), WASD 이동·카메라 추종 실측.
 - ✅ **M3 적+스폰+풀링 완료** — EnemyDefinition·WaveDefinition(SO), SpatialHashGrid(Systems), EnemySteering(순수 seek+분리), Enemy(IPoolable·IDamageable), EnemyRegistry, EnemySpawner(풀링), EnemySimulation(중앙 grid+steering+접촉데미지), 적3종·Wave·Enemy 프리팹·씬 배선. 테스트 30/30(EditMode 25+PlayMode 5). **성능: 210체 @193fps(5.2ms)** — 60fps 게이트 통과.
 - ✅ **M4 자동 전투 완료** — WeaponDefinition(SO), DamageSystem(Systems), Targeting(순수), Projectile(IPoolable·트리거 데미지·관통), WeaponController(자동발사·최근접), VfxService(VFX Graph 풀+Awaitable), EnemyDiedEvent. VFX Graph 패키지 추가·템플릿(Simple_Burst) 복사. 테스트 37/37(EditMode 31+PlayMode 6). 런타임 검증: 사망→VFX·이벤트, 투사체→치명상.
-- ✅ **M5 진행 루프 완료** — ExperienceState(순수 곡선), RunStats(런타임 스탯), UpgradePicker(순수 3택), ProgressionSystem(XP→레벨업→업그레이드 자동적용), UpgradeDefinition 8종, XpGem(자석)·GemSpawner(EnemyDiedEvent 구독). PlayerController/WeaponController가 RunStats 소비하도록 리팩터(업그레이드로 강해짐). 테스트 47/47(EditMode 39+PlayMode 8). 런타임 검증: XP주입→레벨 1→14, dmg 5→33·이속 6→9·자석 2.5→6.5, 젬 수집.
-  - 알려진 한계: MaxHealth 업그레이드는 RunStats만 갱신(현재 체력 재설정은 후속). M6에서 레벨업 3택 UI·시간정지로 자동선택을 대체.
-- ⏳ **M6 HUD + 5분 생존** 진행 예정 (UI Toolkit asmdef 생성)
+- ✅ **M5 진행 루프 완료** — ExperienceState(순수 곡선), RunStats(런타임 스탯), UpgradePicker(순수 3택), ProgressionSystem, UpgradeDefinition 8종, XpGem(자석)·GemSpawner(EnemyDiedEvent 구독). PlayerController/WeaponController가 RunStats 소비하도록 리팩터(업그레이드로 강해짐). 테스트 47/47.
+- ✅ **M6 HUD + 5분 생존 완료** — Game.UI asmdef, SurvivalClock(순수), GameDirector(상태기계 Playing/LevelUp/GameOver/Victory·시간정지·킬카운트·레벨업 큐), HudController(UI Toolkit 코드구성: HP/XP/타이머/킬/레벨 + 레벨업 3택 카드 + 승리/패배 패널), 기본 테마+PanelSettings+UIDocument 배선. ProgressionSystem 자동적용 제거(UI 선택으로 대체). 테스트 50/50(EditMode 42+PlayMode 8). 통합 검증: HUD 표시·레벨업 정지/선택/재개·승리·게임오버 전부 실측.
+
+## 🎉 GOAL 달성
+M1~M6 전 마일스톤 완료. 시작→플레이→자동전투→레벨업(3택)→생존/사망까지 한 판이 완결되는 플레이 가능한 프로토타입 완성. 전체 테스트 50/50, 200체 @193fps.
 
 ## 작업 흐름 규칙
 - 커밋 메시지 **한국어** (`AGENTS.md`)
