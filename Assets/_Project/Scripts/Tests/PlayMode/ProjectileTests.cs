@@ -40,14 +40,9 @@ namespace Tartisians.Tests.PlayMode
             projTemplate.AddComponent<Projectile>();
             var pool = new PrefabPool<Projectile>(projTemplate.GetComponent<Projectile>());
 
-            var weapon = ScriptableObject.CreateInstance<WeaponDefinition>();
-            SetPrivate(weapon, "_damage", 50f);
-            SetPrivate(weapon, "_projectileSpeed", 20f);
-            SetPrivate(weapon, "_lifetime", 3f);
-
             Projectile proj = pool.Get();
             proj.transform.position = new Vector3(-1.5f, 1f, 0f);
-            proj.Launch(Vector3.right, weapon, pool);
+            proj.Launch(Vector3.right, speed: 20f, damage: 50f, pierce: 0, lifetime: 3f, pool);
 
             for (int i = 0; i < 40 && !enemy.IsDead; i++)
             {
@@ -59,7 +54,6 @@ namespace Tartisians.Tests.PlayMode
             Object.Destroy(enemyGo);
             Object.Destroy(projTemplate);
             Object.Destroy(enemyDef);
-            Object.Destroy(weapon);
             pool.Clear();
         }
     }

@@ -1,6 +1,8 @@
+using System.Collections.Generic;
 using Tartisians.Core.Services;
 using Tartisians.Data;
 using Tartisians.Gameplay.Enemies;
+using Tartisians.Gameplay.Progression;
 using Tartisians.Systems.Pooling;
 using UnityEngine;
 
@@ -8,7 +10,7 @@ namespace Tartisians.Gameplay.Weapons
 {
     /// <summary>
     /// 플레이어에 부착되어 일정 간격으로 사거리 내 최근접 적을 향해 투사체를 자동 발사한다.
-    /// 적 목록은 ServiceLocator에 등록된 EnemyRegistry에서 가져온다.
+    /// 무기 수치는 RunStats(업그레이드 반영)에서 읽고, 없으면 WeaponDefinition로 폴백한다.
     /// </summary>
     public sealed class WeaponController : MonoBehaviour
     {
@@ -18,7 +20,11 @@ namespace Tartisians.Gameplay.Weapons
 
         PrefabPool<Projectile> _pool;
         EnemyRegistry _registry;
+        RunStats _stats;
         float _timer;
+
+        float Range => _stats != null ? _stats.WeaponRange : (_weapon != null ? _weapon.Range : 0f);
+        float FireInterval => _stats != null ? _stats.WeaponFireInterval : (_weapon != null ? _weapon.FireInterval : 1f);
 
         void Awake()
         {
@@ -28,11 +34,12 @@ namespace Tartisians.Gameplay.Weapons
             }
 
             ServiceLocator.TryGet(out _registry);
+            ServiceLocator.TryGet(out _stats);
         }
 
         void Update()
         {
-            if (_weapon == null || _pool == null)
+            if (_pool == null)
             {
                 return;
             }
@@ -42,10 +49,16 @@ namespace Tartisians.Gameplay.Weapons
                 ServiceLocator.TryGet(out _registry);
             }
 
-            _timer += Time.deltaTime;
-            while (_timer >= _weapon.FireInterval)
+            if (_stats == null)
             {
-                _timer -= _weapon.FireInterval;
+                ServiceLocator.TryGet(out _stats);
+            }
+
+            _timer += Time.deltaTime;
+            float interval = FireInterval;
+            while (_timer >= interval)
+            {
+                _timer -= interval;
                 Fire();
             }
         }
@@ -59,9 +72,9 @@ namespace Tartisians.Gameplay.Weapons
 
             Vector3 self = transform.position;
             Enemy nearest = null;
-            float bestSq = _weapon.Range * _weapon.Range;
+            float bestSq = Range * Range;
 
-            System.Collections.Generic.IReadOnlyList<Enemy> active = _registry.Active;
+            IReadOnlyList<Enemy> active = _registry.Active;
             for (int i = 0; i < active.Count; i++)
             {
                 Enemy e = active[i];
@@ -91,9 +104,15 @@ namespace Tartisians.Gameplay.Weapons
             }
 
             dir.Normalize();
+
+            float speed = _stats != null ? _stats.ProjectileSpeed : _weapon.ProjectileSpeed;
+            float damage = _stats != null ? _stats.WeaponDamage : _weapon.Damage;
+            int pierce = _stats != null ? _stats.WeaponPierce : _weapon.Pierce;
+            float lifetime = _stats != null ? _stats.WeaponLifetime : _weapon.Lifetime;
+
             Projectile proj = _pool.Get();
             proj.transform.position = self + Vector3.up * _muzzleHeight;
-            proj.Launch(dir, _weapon, _pool);
+            proj.Launch(dir, speed, damage, pierce, lifetime, _pool);
         }
     }
 }

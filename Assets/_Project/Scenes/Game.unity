@@ -596,6 +596,77 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1879261386
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1879261389}
+  - component: {fileID: 1879261388}
+  - component: {fileID: 1879261387}
+  m_Layer: 0
+  m_Name: ProgressionSystem
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1879261387
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1879261386}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 000f9a34d7087684db70965fe088268d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Gameplay::Tartisians.Gameplay.Pickups.GemSpawner
+  _gemPrefab: {fileID: 2467204240319197350, guid: 234cb8982a2ef6341980644aadc21a4a, type: 3}
+  _player: {fileID: 0}
+--- !u!114 &1879261388
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1879261386}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a44037b94a056448a5ba874d3d23fdc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Gameplay::Tartisians.Gameplay.Progression.ProgressionSystem
+  _player: {fileID: 11400000, guid: aa00414c1eed61b4e8da5aeb4532c232, type: 2}
+  _weapon: {fileID: 11400000, guid: ed346d9b3ee029542a782e0ed3f557e2, type: 2}
+  _upgrades:
+  - {fileID: 11400000, guid: 4ad87169355234146977697bcf59f872, type: 2}
+  - {fileID: 11400000, guid: 925f673f628ae0c41881bc8538f6ed0e, type: 2}
+  - {fileID: 11400000, guid: e6b145a1542a9b14d87417eacde095db, type: 2}
+  - {fileID: 11400000, guid: a85fe545c067de54990ee5e885e8d972, type: 2}
+  - {fileID: 11400000, guid: bddb2d3479ecc1040a2508cc4f1fe84c, type: 2}
+  - {fileID: 11400000, guid: 112987cfb4e63ea498fc2ab5c18b6b84, type: 2}
+  - {fileID: 11400000, guid: 53877b6f18afb424ba796f94fff86a2b, type: 2}
+  - {fileID: 11400000, guid: cdf3124688b159a4e86bd0f404097875, type: 2}
+  _choiceCount: 3
+--- !u!4 &1879261389
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1879261386}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1883876515
 GameObject:
   m_ObjectHideFlags: 0
@@ -815,3 +886,4 @@ SceneRoots:
   - {fileID: 1883876520}
   - {fileID: 1182602066}
   - {fileID: 1426712773}
+  - {fileID: 1879261389}

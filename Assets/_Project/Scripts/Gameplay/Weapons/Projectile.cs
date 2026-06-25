@@ -1,4 +1,3 @@
-using Tartisians.Data;
 using Tartisians.Gameplay.Enemies;
 using Tartisians.Systems.Combat;
 using Tartisians.Systems.Pooling;
@@ -23,14 +22,14 @@ namespace Tartisians.Gameplay.Weapons
 
         void Awake() => _rb = GetComponent<Rigidbody>();
 
-        public void Launch(Vector3 direction, WeaponDefinition weapon, PrefabPool<Projectile> pool)
+        public void Launch(Vector3 direction, float speed, float damage, int pierce, float lifetime, PrefabPool<Projectile> pool)
         {
             _direction = direction;
             _pool = pool;
-            _speed = weapon.ProjectileSpeed;
-            _damage = weapon.Damage;
-            _pierceLeft = weapon.Pierce;
-            _life = weapon.Lifetime;
+            _speed = speed;
+            _damage = damage;
+            _pierceLeft = pierce;
+            _life = lifetime;
             transform.forward = direction;
         }
 
