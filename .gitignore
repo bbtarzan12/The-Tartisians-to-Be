@@ -123,3 +123,11 @@ $RECYCLE.BIN/
 
 # Rider
 .idea/
+
+# ---- Unity-MCP 하네스 (에디터 임포트 시 자동 재생성) ----
+# 플러그인 런타임 DLL (NuGet 복원물)
+/[Aa]ssets/Plugins/NuGet/
+/[Aa]ssets/Plugins/NuGet.meta
+/[Aa]ssets/Plugins.meta
+# 자동 생성 스킬 파일
+/.claude/skills/
