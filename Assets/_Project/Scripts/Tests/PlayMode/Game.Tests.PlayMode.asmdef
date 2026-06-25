@@ -4,6 +4,8 @@
     "references": [
         "Game.Core",
         "Game.Systems",
+        "Game.Data",
+        "Game.Gameplay",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],

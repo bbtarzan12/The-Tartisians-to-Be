@@ -1,0 +1,20 @@
+{
+    "name": "Game.Gameplay",
+    "rootNamespace": "Tartisians.Gameplay",
+    "references": [
+        "Game.Core",
+        "Game.Data",
+        "Game.Systems",
+        "Unity.InputSystem",
+        "Unity.Cinemachine"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

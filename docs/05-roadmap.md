@@ -207,7 +207,8 @@
 - ✅ 6단계 상세 실행 스펙 작성 완료
 - ✅ 자율 실행 헌장 + 착수 결정 6건 확정
 - ✅ **M1 기반 골격 완료** — asmdef(Core/Systems/Tests) · EventBus · ServiceLocator · GameStateMachine · PrefabPool · GameBootstrap · Bootstrap 씬 · URP Deferred+/GPU Resident Drawer. 테스트 10/10 통과, 컴파일·런타임 에러 0.
-- ⏳ **M2 플레이어** 진행 예정 (Data/Gameplay/UI asmdef는 해당 레이어 착수 시 생성)
+- ✅ **M2 플레이어 완료** — Data(PlayerDefinition)·Gameplay asmdef 신설, InputReader(New Input System), PlayerController(Rigidbody 이동, 순수 PlayerMovement 분리), Health/HealthState(IDamageable), Cinemachine 쿼터뷰 CameraRig, Player 프리팹·Game 씬. 테스트 22/22(EditMode 18+PlayMode 4), WASD 이동·카메라 추종 실측.
+- ⏳ **M3 적+스폰+풀링** 진행 예정 (UI asmdef는 M6에서 생성)
 
 ## 작업 흐름 규칙
 - 커밋 메시지 **한국어** (`AGENTS.md`)
