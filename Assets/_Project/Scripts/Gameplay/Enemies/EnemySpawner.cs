@@ -1,4 +1,8 @@
+using Tartisians.Core.Events;
+using Tartisians.Core.Services;
 using Tartisians.Data;
+using Tartisians.Gameplay.Events;
+using Tartisians.Gameplay.Vfx;
 using Tartisians.Systems.Pooling;
 using UnityEngine;
 
@@ -22,7 +26,13 @@ namespace Tartisians.Gameplay.Enemies
 
         void Awake()
         {
-            _pool = new PrefabPool<Enemy>(_enemyPrefab, transform, defaultCapacity: 64, maxSize: 2000);
+            if (_enemyPrefab != null)
+            {
+                _pool = new PrefabPool<Enemy>(_enemyPrefab, transform, defaultCapacity: 64, maxSize: 2000);
+            }
+
+            ServiceLocator.Register(_registry);
+
             if (_target == null)
             {
                 GameObject p = GameObject.FindGameObjectWithTag("Player");
@@ -80,6 +90,18 @@ namespace Tartisians.Gameplay.Enemies
         {
             enemy.Despawned -= HandleDespawn;
             _registry.Remove(enemy);
+
+            // 사망 처리: VFX(풀) 재생 + 사망 이벤트 발행(XP 젬은 M5에서 구독)
+            Vector3 pos = enemy.Position;
+            int xp = enemy.Definition != null ? enemy.Definition.XpReward : 0;
+
+            if (ServiceLocator.TryGet(out VfxService vfx))
+            {
+                vfx.PlayDeath(pos);
+            }
+
+            EventBus<EnemyDiedEvent>.Raise(new EnemyDiedEvent { Position = pos, XpReward = xp });
+
             _pool.Release(enemy);
         }
     }

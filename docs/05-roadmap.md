@@ -209,7 +209,8 @@
 - ✅ **M1 기반 골격 완료** — asmdef(Core/Systems/Tests) · EventBus · ServiceLocator · GameStateMachine · PrefabPool · GameBootstrap · Bootstrap 씬 · URP Deferred+/GPU Resident Drawer. 테스트 10/10 통과, 컴파일·런타임 에러 0.
 - ✅ **M2 플레이어 완료** — Data(PlayerDefinition)·Gameplay asmdef 신설, InputReader(New Input System), PlayerController(Rigidbody 이동, 순수 PlayerMovement 분리), Health/HealthState(IDamageable), Cinemachine 쿼터뷰 CameraRig, Player 프리팹·Game 씬. 테스트 22/22(EditMode 18+PlayMode 4), WASD 이동·카메라 추종 실측.
 - ✅ **M3 적+스폰+풀링 완료** — EnemyDefinition·WaveDefinition(SO), SpatialHashGrid(Systems), EnemySteering(순수 seek+분리), Enemy(IPoolable·IDamageable), EnemyRegistry, EnemySpawner(풀링), EnemySimulation(중앙 grid+steering+접촉데미지), 적3종·Wave·Enemy 프리팹·씬 배선. 테스트 30/30(EditMode 25+PlayMode 5). **성능: 210체 @193fps(5.2ms)** — 60fps 게이트 통과.
-- ⏳ **M4 자동 전투** 진행 예정 (UI asmdef는 M6에서 생성)
+- ✅ **M4 자동 전투 완료** — WeaponDefinition(SO), DamageSystem(Systems), Targeting(순수), Projectile(IPoolable·트리거 데미지·관통), WeaponController(자동발사·최근접), VfxService(VFX Graph 풀+Awaitable), EnemyDiedEvent. VFX Graph 패키지 추가·템플릿(Simple_Burst) 복사. 테스트 37/37(EditMode 31+PlayMode 6). 런타임 검증: 사망→VFX·이벤트, 투사체→치명상.
+- ⏳ **M5 진행 루프(XP·레벨업·업그레이드)** 진행 예정 (UI asmdef는 M6에서 생성)
 
 ## 작업 흐름 규칙
 - 커밋 메시지 **한국어** (`AGENTS.md`)

@@ -6,7 +6,8 @@
         "Game.Data",
         "Game.Systems",
         "Unity.InputSystem",
-        "Unity.Cinemachine"
+        "Unity.Cinemachine",
+        "Unity.VisualEffectGraph.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

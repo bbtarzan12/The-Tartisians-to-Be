@@ -550,6 +550,52 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1426712771
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1426712773}
+  - component: {fileID: 1426712772}
+  m_Layer: 0
+  m_Name: VfxSystem
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1426712772
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1426712771}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c000c18306a8c084e984453e7485ece7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Gameplay::Tartisians.Gameplay.Vfx.VfxService
+  _deathVfxPrefab: {fileID: 3653787502280638857, guid: 6c6552728d735d143bcb5ac5566038ca, type: 3}
+  _lifetime: 1
+--- !u!4 &1426712773
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1426712771}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1883876515
 GameObject:
   m_ObjectHideFlags: 0
@@ -728,13 +774,36 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 6744641964487131375, guid: 341d81d1479c18049a2edca17e8493ab, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7397138552064841830}
   m_SourcePrefab: {fileID: 100100000, guid: 341d81d1479c18049a2edca17e8493ab, type: 3}
 --- !u!4 &7397138552064841828 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1719906707327921041, guid: 341d81d1479c18049a2edca17e8493ab, type: 3}
   m_PrefabInstance: {fileID: 7397138552064841827}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &7397138552064841829 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6744641964487131375, guid: 341d81d1479c18049a2edca17e8493ab, type: 3}
+  m_PrefabInstance: {fileID: 7397138552064841827}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &7397138552064841830
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7397138552064841829}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 43dfa2c0de4414c48aff44eacf075029, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Gameplay::Tartisians.Gameplay.Weapons.WeaponController
+  _weapon: {fileID: 0}
+  _projectilePrefab: {fileID: 3400669700419219907, guid: ff7d014b37792eb40bcbf11b4c535cd1, type: 3}
+  _muzzleHeight: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -745,3 +814,4 @@ SceneRoots:
   - {fileID: 7397138552064841827}
   - {fileID: 1883876520}
   - {fileID: 1182602066}
+  - {fileID: 1426712773}
