@@ -62,10 +62,10 @@ namespace Tartisians.Tests.PlayMode
             Object.Destroy(wave);
         }
 
-        // 회귀: 스폰 위치가 원점(캐릭터 스폰 지점)이 아니라 spawnRadius 링 위여야 한다.
-        // (버그: transform만 설정하고 Rigidbody.position을 안 맞춰 시뮬이 원점으로 끌어당김)
+        // 회귀: 스폰 위치가 원점(스폰 지점)이 아니고, 아레나(±18) 안이어야 한다.
+        // (스폰은 화면 밖+아레나 안 거부 샘플링. 카메라 없으면 화면 밖 판정이라 거리만 보장.)
         [UnityTest]
-        public IEnumerator SpawnOne_PlacesEnemyOnRing_NotAtOrigin()
+        public IEnumerator SpawnOne_PlacesEnemyInsideArena_NotAtOrigin()
         {
             var def = ScriptableObject.CreateInstance<EnemyDefinition>();
             var wave = ScriptableObject.CreateInstance<WaveDefinition>(); // spawnRadius 기본 18
@@ -83,10 +83,10 @@ namespace Tartisians.Tests.PlayMode
             Enemy spawned = spawner.SpawnOne();
             Vector3 p = spawned.Position;
             p.y = 0f;
-            float dist = p.magnitude;
 
-            Assert.Greater(dist, 1f, "적이 원점(스폰 지점)에 생기면 안 된다.");
-            Assert.AreEqual(18f, dist, 0.6f, "spawnRadius(18) 링 위에 생성돼야 한다.");
+            Assert.Greater(p.magnitude, 1f, "적이 원점(스폰 지점)에 생기면 안 된다.");
+            Assert.LessOrEqual(Mathf.Abs(p.x), 18.01f, "아레나(±18) 안에 생성돼야 한다.");
+            Assert.LessOrEqual(Mathf.Abs(p.z), 18.01f, "아레나(±18) 안에 생성돼야 한다.");
 
             yield return null;
 
