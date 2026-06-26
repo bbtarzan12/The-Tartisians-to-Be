@@ -12,21 +12,21 @@
       "url": "https://package.openupm.com"
     },
     "com.ivanmurzak.unity.mcp.inputsystem": {
-      "version": "1.0.7",
+      "version": "1.0.8",
       "depth": 0,
       "source": "registry",
       "dependencies": {
-        "com.ivanmurzak.unity.mcp": "0.82.1",
+        "com.ivanmurzak.unity.mcp": "0.82.2",
         "com.unity.inputsystem": "1.7.0"
       },
       "url": "https://package.openupm.com"
     },
     "com.ivanmurzak.unity.mcp.probuilder": {
-      "version": "1.2.21",
+      "version": "1.2.22",
       "depth": 0,
       "source": "registry",
       "dependencies": {
-        "com.ivanmurzak.unity.mcp": "0.82.1",
+        "com.ivanmurzak.unity.mcp": "0.82.2",
         "com.unity.probuilder": "5.2.4"
       },
       "url": "https://package.openupm.com"
