@@ -16,6 +16,7 @@ namespace Tartisians.Gameplay.Player
     {
         [SerializeField] PlayerDefinition _definition;
         [SerializeField] MonoBehaviour _inputSource; // IMoveInputSource 구현체
+        [SerializeField] Vector2 _arenaHalfExtent = new(19f, 19f); // 아레나 절반 크기. (0,0)이면 제한 없음
 
         Rigidbody _rb;
         IMoveInputSource _input;
@@ -54,10 +55,21 @@ namespace Tartisians.Gameplay.Player
             }
 
             Vector3 delta = PlayerMovement.ComputeDelta(_input.MoveInput, speed, Time.fixedDeltaTime);
-            if (delta != Vector3.zero)
+            if (delta == Vector3.zero)
             {
-                _rb.MovePosition(_rb.position + delta);
+                return;
             }
+
+            Vector3 newPos = _rb.position + delta;
+
+            // 아레나 경계로 제한 → 플레이어가 흐름장(=맵) 밖으로 못 나감
+            if (_arenaHalfExtent.x > 0f && _arenaHalfExtent.y > 0f)
+            {
+                newPos.x = Mathf.Clamp(newPos.x, -_arenaHalfExtent.x, _arenaHalfExtent.x);
+                newPos.z = Mathf.Clamp(newPos.z, -_arenaHalfExtent.y, _arenaHalfExtent.y);
+            }
+
+            _rb.MovePosition(newPos);
         }
     }
 }

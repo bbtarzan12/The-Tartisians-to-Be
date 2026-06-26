@@ -76,5 +76,38 @@ namespace Tartisians.Tests.PlayMode
             Object.Destroy(go);
             Object.Destroy(def);
         }
+
+        [UnityTest]
+        public IEnumerator Movement_ClampedToArenaBounds()
+        {
+            var def = ScriptableObject.CreateInstance<PlayerDefinition>();
+            typeof(PlayerDefinition)
+                .GetField("_moveSpeed", BindingFlags.NonPublic | BindingFlags.Instance)
+                .SetValue(def, 50f); // 빠르게 경계까지 도달
+
+            var go = new GameObject("PlayerTestClamp");
+            var rb = go.AddComponent<Rigidbody>();
+            rb.isKinematic = true;
+
+            var stub = go.AddComponent<StubInput>();
+            stub.Value = new Vector2(1f, 0f); // +X로 계속 이동
+
+            var pc = go.AddComponent<PlayerController>();
+            typeof(PlayerController)
+                .GetField("_definition", BindingFlags.NonPublic | BindingFlags.Instance)
+                .SetValue(pc, def); // _arenaHalfExtent는 기본값 (19,19)
+
+            for (int i = 0; i < 60; i++)
+            {
+                yield return new WaitForFixedUpdate();
+            }
+
+            // 경계(19)를 넘지 않아야 한다(미적용이면 ~36까지 갔을 것).
+            Assert.LessOrEqual(go.transform.position.x, 19.01f, "아레나 경계로 제한돼야 한다.");
+            Assert.Greater(go.transform.position.x, 18.5f, "경계 근처까지는 이동해야 한다.");
+
+            Object.Destroy(go);
+            Object.Destroy(def);
+        }
     }
 }
