@@ -33,8 +33,13 @@ namespace Tartisians.Gameplay.Enemies
                 if (p != null)
                 {
                     _target = p.transform;
-                    p.TryGetComponent(out _playerHealth);
                 }
+            }
+
+            // _target이 인스펙터로 미리 연결돼 있어도 항상 Health를 해석한다(접촉 데미지용).
+            if (_target != null)
+            {
+                _target.TryGetComponent(out _playerHealth);
             }
         }
 
