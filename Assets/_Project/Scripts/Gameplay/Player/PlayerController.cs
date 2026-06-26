@@ -3,6 +3,7 @@ using Tartisians.Data;
 using Tartisians.Gameplay.Combat;
 using Tartisians.Gameplay.Input;
 using Tartisians.Gameplay.Progression;
+using Tartisians.Systems.Crowd;
 using UnityEngine;
 
 namespace Tartisians.Gameplay.Player
@@ -17,11 +18,13 @@ namespace Tartisians.Gameplay.Player
         [SerializeField] PlayerDefinition _definition;
         [SerializeField] MonoBehaviour _inputSource; // IMoveInputSource 구현체
         [SerializeField] Vector2 _arenaHalfExtent = new(19f, 19f); // 아레나 절반 크기. (0,0)이면 제한 없음
+        [SerializeField] float _collisionRadius = 0.5f; // 플레이어 캡슐 반경(벽·장애물 밀어내기용)
 
         Rigidbody _rb;
         IMoveInputSource _input;
         Health _health;
         RunStats _stats;
+        ObstacleField _obstacles;
 
         void Awake()
         {
@@ -67,6 +70,33 @@ namespace Tartisians.Gameplay.Player
             {
                 newPos.x = Mathf.Clamp(newPos.x, -_arenaHalfExtent.x, _arenaHalfExtent.x);
                 newPos.z = Mathf.Clamp(newPos.z, -_arenaHalfExtent.y, _arenaHalfExtent.y);
+            }
+
+            // 장애물(둘레 벽 + 내부 장애물) 밀어내기 — 적과 동일한 해석적 ObstacleField 사용.
+            // 키네마틱 이동이라 물리 충돌이 없으므로 직접 SDF로 빼낸다(내부 벽 관통 방지).
+            if (_obstacles == null)
+            {
+                ServiceLocator.TryGet(out _obstacles);
+            }
+
+            if (_obstacles != null)
+            {
+                for (int i = 0; i < 2; i++)
+                {
+                    float d = _obstacles.Distance(newPos);
+                    if (d >= _collisionRadius)
+                    {
+                        break;
+                    }
+
+                    Vector3 n = _obstacles.Normal(newPos);
+                    if (n == Vector3.zero)
+                    {
+                        break;
+                    }
+
+                    newPos += n * (_collisionRadius - d);
+                }
             }
 
             _rb.MovePosition(newPos);
