@@ -61,5 +61,39 @@ namespace Tartisians.Tests.PlayMode
             Object.Destroy(def);
             Object.Destroy(wave);
         }
+
+        // 회귀: 스폰 위치가 원점(캐릭터 스폰 지점)이 아니라 spawnRadius 링 위여야 한다.
+        // (버그: transform만 설정하고 Rigidbody.position을 안 맞춰 시뮬이 원점으로 끌어당김)
+        [UnityTest]
+        public IEnumerator SpawnOne_PlacesEnemyOnRing_NotAtOrigin()
+        {
+            var def = ScriptableObject.CreateInstance<EnemyDefinition>();
+            var wave = ScriptableObject.CreateInstance<WaveDefinition>(); // spawnRadius 기본 18
+            SetPrivate(wave, "_enemies", new[] { def });
+
+            Enemy template = BuildEnemyTemplate();
+
+            var go = new GameObject("Spawner");
+            go.SetActive(false);
+            var spawner = go.AddComponent<EnemySpawner>();
+            SetPrivate(spawner, "_enemyPrefab", template);
+            SetPrivate(spawner, "_wave", wave);
+            go.SetActive(true); // _target 미지정 → 중심 원점
+
+            Enemy spawned = spawner.SpawnOne();
+            Vector3 p = spawned.Position;
+            p.y = 0f;
+            float dist = p.magnitude;
+
+            Assert.Greater(dist, 1f, "적이 원점(스폰 지점)에 생기면 안 된다.");
+            Assert.AreEqual(18f, dist, 0.6f, "spawnRadius(18) 링 위에 생성돼야 한다.");
+
+            yield return null;
+
+            Object.Destroy(go);
+            Object.Destroy(template.gameObject);
+            Object.Destroy(def);
+            Object.Destroy(wave);
+        }
     }
 }

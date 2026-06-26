@@ -65,6 +65,19 @@ namespace Tartisians.Gameplay.Enemies
             }
         }
 
+        /// <summary>
+        /// 즉시 순간이동. transform뿐 아니라 Rigidbody.position도 함께 설정해야
+        /// 다음 물리 스텝에서 시뮬레이션이 옛 위치(보통 원점)로 끌어당기지 않는다.
+        /// </summary>
+        public void SetPosition(Vector3 position)
+        {
+            transform.position = position;
+            if (_rb != null)
+            {
+                _rb.position = position;
+            }
+        }
+
         public void TakeDamage(float amount)
         {
             if (_health == null)

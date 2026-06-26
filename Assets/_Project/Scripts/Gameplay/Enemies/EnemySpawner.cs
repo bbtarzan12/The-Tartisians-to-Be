@@ -77,7 +77,7 @@ namespace Tartisians.Gameplay.Enemies
             float angle = Random.value * Mathf.PI * 2f;
             Vector3 pos = center + new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * _wave.SpawnRadius;
             pos.y = 1f;
-            enemy.transform.position = pos;
+            enemy.SetPosition(pos); // transform + Rigidbody.position 동시 설정(원점 끌림 방지)
 
             enemy.Initialize(def);
             enemy.Despawned -= HandleDespawn;
