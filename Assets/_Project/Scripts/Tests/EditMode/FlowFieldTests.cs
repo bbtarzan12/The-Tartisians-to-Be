@@ -59,58 +59,40 @@ namespace Tartisians.Tests.EditMode
             Assert.AreEqual(Vector3.zero, ff.SampleDirection(new Vector3(-10f, 0f, 0f)));
         }
 
-        // ── 거리장(SDF) + 그래디언트 ──
-
-        static FlowField WallAtX5()
+        // 윈도우 BFS: 목표 셀(20,20) 주변 반경 5 창만 계산 → 창 안은 목표로 향하고 창 밖은 zero.
+        [Test]
+        public void ComputeWindow_OnlyComputesAroundGoal()
         {
-            var ff = new FlowField(Vector3.zero, 1f, 10, 10);
-            for (int y = 0; y < 10; y++)
+            var ff = new FlowField(Vector3.zero, 1f, 40, 40);
+            ff.ComputeWindow(new Vector3(20.5f, 0f, 20.5f), 5); // 목표 셀 (20,20), 창 [15..25]
+
+            Assert.AreEqual(0, ff.GetCost(20, 20), "목표 셀 비용 0.");
+            Assert.AreEqual(5, ff.GetCost(25, 20), "창 가장자리(거리 5)까지 BFS 도달.");
+            Assert.AreEqual(5, ff.GetCost(15, 20), "반대 가장자리도 거리 5.");
+
+            // 창 안: 목표(-x) 방향
+            Vector3 inDir = ff.SampleDirection(new Vector3(23.5f, 0f, 20.5f)); // 셀 (23,20)
+            Assert.Less(inDir.x, 0f, "창 안 흐름은 목표(-x)를 향해야 한다.");
+
+            // 창 밖: zero(→ 직선 추적 폴백)
+            Assert.AreEqual(Vector3.zero, ff.SampleDirection(new Vector3(30.5f, 0f, 20.5f)), "창 밖은 흐름 없음(zero).");
+        }
+
+        // 윈도우 안에서도 벽을 우회해야 한다.
+        [Test]
+        public void ComputeWindow_RoutesAroundWallInsideWindow()
+        {
+            var ff = new FlowField(Vector3.zero, 1f, 40, 40);
+            for (int y = 16; y <= 24; y++)
             {
-                ff.SetBlocked(5, y, true); // x=5 세로 벽
+                ff.SetBlocked(22, y, true); // 목표(20,20)와 (24,20) 사이 세로 벽(통로는 위아래)
             }
 
-            ff.Compute(new Vector3(0.5f, 0f, 0.5f)); // 거리장도 Compute에서 계산됨
-            return ff;
-        }
+            ff.ComputeWindow(new Vector3(20.5f, 0f, 20.5f), 8);
 
-        [Test]
-        public void DistanceToObstacle_ZeroAtWall_GrowsAway()
-        {
-            var ff = WallAtX5();
-            Assert.AreEqual(0f, ff.DistanceToObstacle(new Vector3(5.5f, 0f, 5.5f)), 1e-4f); // 벽 셀
-            Assert.AreEqual(1f, ff.DistanceToObstacle(new Vector3(4.5f, 0f, 5.5f)), 1e-4f); // 인접
-            Assert.AreEqual(3f, ff.DistanceToObstacle(new Vector3(2.5f, 0f, 5.5f)), 1e-4f); // 3칸
-        }
-
-        [Test]
-        public void ObstacleGradient_PointsAwayFromWall()
-        {
-            var ff = WallAtX5();
-            Vector3 g = ff.ObstacleGradient(new Vector3(4.5f, 0f, 5.5f)); // 벽(x=5) 왼쪽
-            Assert.Less(g.x, 0f, "벽 반대(-x)로 향해야 한다.");
-        }
-
-        [Test]
-        public void PushOut_ConvergesToClearWall()
-        {
-            var ff = WallAtX5();
-            const float radius = 1.2f;
-            Vector3 pos = new Vector3(4.5f, 0f, 5.5f); // 벽에 너무 가까움(dist 1 < 1.2)
-
-            for (int i = 0; i < 20; i++)
-            {
-                float d = ff.DistanceToObstacle(pos);
-                if (d >= radius)
-                {
-                    break;
-                }
-
-                Vector3 grad = ff.ObstacleGradient(pos);
-                pos += grad * (radius - d);
-            }
-
-            Assert.GreaterOrEqual(ff.DistanceToObstacle(pos), radius, "밀어내기 후 벽에서 반경 이상 떨어져야 한다.");
-            Assert.Less(pos.x, 4.5f, "벽에서 멀어지는 방향으로 이동해야 한다.");
+            ushort behind = ff.GetCost(24, 20); // 벽 뒤
+            Assert.AreNotEqual(ushort.MaxValue, behind, "창 안에 통로가 있으면 우회 도달 가능.");
+            Assert.Greater(behind, 4, "우회 경로는 직선 거리(4)보다 길어야 한다.");
         }
     }
 }

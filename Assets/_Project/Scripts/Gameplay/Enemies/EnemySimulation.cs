@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Tartisians.Core.Services;
 using Tartisians.Gameplay.Combat;
+using Tartisians.Systems.Crowd;
 using Tartisians.Systems.Navigation;
 using Tartisians.Systems.Spatial;
 using UnityEngine;
@@ -9,25 +10,28 @@ namespace Tartisians.Gameplay.Enemies
 {
     /// <summary>
     /// 모든 적의 이동을 한 곳에서 갱신한다(데이터 지향). 매 FixedUpdate:
-    /// 1) 활성 적 위치로 공간 해시 재구성 2) seek+separation 이동 3) 플레이어 접촉 데미지.
-    /// GameObject마다 Update를 돌리지 않아 대량에서도 저렴하다.
+    /// 1) 흐름장에서 선호속도(전역 라우팅) 수집 2) PBD 군중 솔버로 비침투/벽 제약을 통일 투영
+    /// 3) 결과를 Move()로 적용 + 플레이어 접촉 데미지.
+    /// 군중 처리(밀지 않음·공간 없으면 정지·벽 비침투)는 전부 <see cref="CrowdSolver"/>가 담당한다.
     /// </summary>
     public sealed class EnemySimulation : MonoBehaviour
     {
         [SerializeField] EnemySpawner _spawner;
         [SerializeField] Transform _target;
         [SerializeField] float _cellSize = 2f;
-        const float MaxEnemyRadius = 0.8f; // 이웃 질의 반경 보정용(Brute 기준)
-
-        [SerializeField] float _separationRadius = 1.2f;
         [SerializeField] float _contactRadius = 1.2f;
-        [SerializeField] float _wallClearance = 1.5f;
+        [SerializeField] CrowdSolver _solver = new();
 
         SpatialHashGrid _grid;
         Health _playerHealth;
         FlowField _flowField;
+        ObstacleField _obstacles;
+
         readonly List<Vector3> _positions = new(256);
-        readonly List<int> _neighbors = new(32);
+        readonly List<Vector3> _velocities = new(256);
+        readonly List<Vector3> _preferred = new(256);
+        readonly List<float> _radii = new(256);
+        readonly List<float> _maxSpeeds = new(256);
 
         void Awake()
         {
@@ -62,105 +66,89 @@ namespace Tartisians.Gameplay.Enemies
                 return;
             }
 
-            _positions.Clear();
-            for (int i = 0; i < count; i++)
-            {
-                _positions.Add(active[i].Position);
-            }
-
-            _grid.Rebuild(_positions);
-
             if (_flowField == null)
             {
                 ServiceLocator.TryGet(out _flowField);
             }
 
+            if (_obstacles == null)
+            {
+                ServiceLocator.TryGet(out _obstacles);
+            }
+
             Vector3 targetPos = _target.position;
+            targetPos.y = 0f;
             float dt = Time.fixedDeltaTime;
-            float contactR2 = _contactRadius * _contactRadius;
+
+            // 1) 적 상태 + 선호속도(흐름장 → 전역 라우팅, 폴백 직선) 수집
+            _positions.Clear();
+            _velocities.Clear();
+            _preferred.Clear();
+            _radii.Clear();
+            _maxSpeeds.Clear();
 
             for (int i = 0; i < count; i++)
             {
-                Enemy enemy = active[i];
-                Vector3 self = _positions[i];
-                float radius = enemy.Definition != null ? enemy.Definition.Radius : 0.5f;
-                float speed = enemy.Definition != null ? enemy.Definition.MoveSpeed : 3f;
+                Enemy e = active[i];
+                Vector3 p = e.Position;
+                p.y = 0f;
+                float radius = e.Definition != null ? e.Definition.Radius : 0.5f;
+                float speed = e.Definition != null ? e.Definition.MoveSpeed : 3f;
 
-                // 1) 흐름 방향(장애물 우회). 없거나 셀 밖이면 직선 폴백.
-                Vector3 seekDir = targetPos - self;
+                Vector3 dir;
                 if (_flowField != null)
                 {
-                    Vector3 flow = _flowField.SampleDirection(self);
-                    if (flow != Vector3.zero)
+                    dir = _flowField.SampleDirection(p);
+                    if (dir == Vector3.zero)
                     {
-                        seekDir = flow;
-                    }
-
-                    // 벽 접선: 흐름이 벽으로 향하는 성분을 제거(벽을 따라 미끄러짐)
-                    float wallDist = _flowField.DistanceToObstacle(self);
-                    if (wallDist < _wallClearance)
-                    {
-                        Vector3 away = _flowField.ObstacleGradient(self);
-                        float into = Vector3.Dot(seekDir, -away);
-                        if (into > 0f)
-                        {
-                            seekDir += away * into; // 벽으로 들어가는 성분 제거
-                        }
+                        dir = targetPos - p;
                     }
                 }
-
-                // 흐름으로 전진한 잠정 위치
-                Vector3 tentative = self + EnemySteering.ComputeMove(seekDir, Vector3.zero, speed, dt);
-
-                // 2) 무푸시 위치 보정(PBD): 이웃과 겹치면 '힘'이 아니라 '위치'를 절반씩 밀어 해소.
-                //    압력이 누적되지 않아 군중이 서로/벽으로 밀어붙이지 않고, 막히면 자연히 멈춘다.
-                _grid.Query(self, radius + MaxEnemyRadius, _neighbors);
-                for (int k = 0; k < _neighbors.Count; k++)
+                else
                 {
-                    int j = _neighbors[k];
-                    if (j == i)
-                    {
-                        continue;
-                    }
-
-                    float minDist = radius + (active[j].Definition != null ? active[j].Definition.Radius : 0.5f);
-                    Vector3 d = tentative - _positions[j];
-                    d.y = 0f;
-                    float dist = d.magnitude;
-                    if (dist > 1e-4f && dist < minDist)
-                    {
-                        tentative += d / dist * ((minDist - dist) * 0.5f);
-                    }
+                    dir = targetPos - p;
                 }
 
-                // 3) 벽 하드 클램프(적-적보다 우선): 보정 후에도 벽 안이면 SDF로 정확히 밀어냄.
-                if (_flowField != null)
+                dir.y = 0f;
+                if (dir.sqrMagnitude > 1e-6f)
                 {
-                    float wd = _flowField.DistanceToObstacle(tentative);
-                    if (wd < radius)
+                    dir.Normalize();
+                }
+
+                Vector3 v = e.Velocity;
+                v.y = 0f;
+
+                _positions.Add(p);
+                _velocities.Add(v);
+                _preferred.Add(dir * speed);
+                _radii.Add(radius);
+                _maxSpeeds.Add(speed);
+            }
+
+            // 2) PBD 군중 솔버: 적-적/적-벽 비침투를 하나의 제약 투영으로 해소
+            //    벽 충돌은 해석적 ObstacleField(매끄러움) — 격자 흐름장은 선호속도 라우팅 전용
+            _solver.Step(count, _positions, _velocities, _preferred, _radii, _maxSpeeds, _grid,
+                _obstacles, dt);
+
+            // 3) 적용 + 접촉 데미지
+            float contactR2 = _contactRadius * _contactRadius;
+            for (int i = 0; i < count; i++)
+            {
+                Enemy e = active[i];
+                Vector3 oldP = e.Position;
+                Vector3 newP = _positions[i];
+                Vector3 step = new Vector3(newP.x - oldP.x, 0f, newP.z - oldP.z);
+                e.Move(step);
+
+                if (_playerHealth != null)
+                {
+                    Vector3 toPlayer = oldP - targetPos;
+                    toPlayer.y = 0f;
+                    if (toPlayer.sqrMagnitude <= contactR2)
                     {
-                        Vector3 away = _flowField.ObstacleGradient(tentative);
-                        if (away != Vector3.zero)
-                        {
-                            tentative += away * (radius - wd);
-                        }
+                        float dps = e.Definition != null ? e.Definition.ContactDamagePerSecond : 5f;
+                        _playerHealth.TakeDamage(dps * dt);
                     }
-                }
-
-                // 위치 보정(겹침·벽)이 이동에 더해져 속도가 튀지 않도록 한 프레임 변위를 이동 예산으로 제한.
-                Vector3 step = tentative - self;
-                float maxStep = speed * dt;
-                if (step.sqrMagnitude > maxStep * maxStep)
-                {
-                    step = step.normalized * maxStep;
-                }
-
-                enemy.Move(step);
-
-                if (_playerHealth != null && (self - targetPos).sqrMagnitude <= contactR2)
-                {
-                    float dps = enemy.Definition != null ? enemy.Definition.ContactDamagePerSecond : 5f;
-                    _playerHealth.TakeDamage(dps * dt);
                 }
             }
         }
