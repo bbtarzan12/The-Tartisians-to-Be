@@ -16,7 +16,6 @@ namespace Tartisians.Gameplay.Weapons
     {
         [SerializeField] WeaponDefinition _weapon;
         [SerializeField] Projectile _projectilePrefab;
-        [SerializeField] float _muzzleHeight = 1f;
 
         PrefabPool<Projectile> _pool;
         EnemyRegistry _registry;
@@ -110,8 +109,13 @@ namespace Tartisians.Gameplay.Weapons
             int pierce = _stats != null ? _stats.WeaponPierce : _weapon.Pierce;
             float lifetime = _stats != null ? _stats.WeaponLifetime : _weapon.Lifetime;
 
+            // 고정 높이가 아니라 대상 적의 높이(게임플레이 평면)에서 발사한다.
+            // 키 작은 적도 투사체에 맞도록 한다(투사체는 dir.y=0으로 수평 비행).
+            Vector3 spawn = self;
+            spawn.y = nearest.Position.y;
+
             Projectile proj = _pool.Get();
-            proj.transform.position = self + Vector3.up * _muzzleHeight;
+            proj.transform.position = spawn;
             proj.Launch(dir, speed, damage, pierce, lifetime, _pool);
         }
     }
