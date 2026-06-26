@@ -1,5 +1,7 @@
+using Tartisians.Core.Services;
 using Tartisians.Gameplay.Enemies;
 using Tartisians.Systems.Combat;
+using Tartisians.Systems.Crowd;
 using Tartisians.Systems.Pooling;
 using UnityEngine;
 
@@ -12,8 +14,11 @@ namespace Tartisians.Gameplay.Weapons
     [RequireComponent(typeof(Rigidbody))]
     public sealed class Projectile : MonoBehaviour, IPoolable
     {
+        const float Radius = 0.2f; // 벽 충돌 판정 반경
+
         Rigidbody _rb;
         PrefabPool<Projectile> _pool;
+        ObstacleField _obstacles;
         Vector3 _direction;
         float _speed;
         float _damage;
@@ -35,9 +40,23 @@ namespace Tartisians.Gameplay.Weapons
 
         void FixedUpdate()
         {
-            _rb.MovePosition(_rb.position + _direction * (_speed * Time.fixedDeltaTime));
+            Vector3 pos = _rb.position + _direction * (_speed * Time.fixedDeltaTime);
+            _rb.MovePosition(pos);
+
             _life -= Time.fixedDeltaTime;
             if (_life <= 0f)
+            {
+                Release();
+                return;
+            }
+
+            // 벽·장애물에 부딪히면 소멸(적 충돌과 별개, 해석적 ObstacleField).
+            if (_obstacles == null)
+            {
+                ServiceLocator.TryGet(out _obstacles);
+            }
+
+            if (_obstacles != null && _obstacles.Distance(pos) < Radius)
             {
                 Release();
             }

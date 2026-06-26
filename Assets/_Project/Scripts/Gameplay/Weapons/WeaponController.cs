@@ -3,6 +3,7 @@ using Tartisians.Core.Services;
 using Tartisians.Data;
 using Tartisians.Gameplay.Enemies;
 using Tartisians.Gameplay.Progression;
+using Tartisians.Systems.Crowd;
 using Tartisians.Systems.Pooling;
 using UnityEngine;
 
@@ -21,6 +22,7 @@ namespace Tartisians.Gameplay.Weapons
         PrefabPool<Projectile> _pool;
         EnemyRegistry _registry;
         RunStats _stats;
+        ObstacleField _obstacles;
         float _timer;
 
         float Range => _stats != null ? _stats.WeaponRange : (_weapon != null ? _weapon.Range : 0f);
@@ -70,6 +72,11 @@ namespace Tartisians.Gameplay.Weapons
                 return;
             }
 
+            if (_obstacles == null)
+            {
+                ServiceLocator.TryGet(out _obstacles);
+            }
+
             Vector3 self = transform.position;
             Enemy nearest = null;
             float bestSq = Range * Range;
@@ -84,11 +91,19 @@ namespace Tartisians.Gameplay.Weapons
                 }
 
                 float sq = (e.Position - self).sqrMagnitude;
-                if (sq <= bestSq)
+                if (sq > bestSq)
                 {
-                    bestSq = sq;
-                    nearest = e;
+                    continue;
                 }
+
+                // 벽 너머의 적은 조준하지 않는다(시야 차단 → 다음 후보).
+                if (_obstacles != null && _obstacles.Blocks(self, e.Position))
+                {
+                    continue;
+                }
+
+                bestSq = sq;
+                nearest = e;
             }
 
             if (nearest == null)
