@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using Tartisians.Core.Services;
 using Tartisians.Gameplay.Combat;
+using Tartisians.Systems.Navigation;
 using Tartisians.Systems.Spatial;
 using UnityEngine;
 
@@ -18,9 +20,12 @@ namespace Tartisians.Gameplay.Enemies
         [SerializeField] float _separationRadius = 1.2f;
         [SerializeField] float _separationWeight = 1.5f;
         [SerializeField] float _contactRadius = 1.2f;
+        [SerializeField] float _wallClearance = 1.5f;
+        [SerializeField] float _wallRepelWeight = 2f;
 
         SpatialHashGrid _grid;
         Health _playerHealth;
+        FlowField _flowField;
         readonly List<Vector3> _positions = new(256);
         readonly List<int> _neighbors = new(32);
 
@@ -65,6 +70,11 @@ namespace Tartisians.Gameplay.Enemies
 
             _grid.Rebuild(_positions);
 
+            if (_flowField == null)
+            {
+                ServiceLocator.TryGet(out _flowField);
+            }
+
             Vector3 targetPos = _target.position;
             float dt = Time.fixedDeltaTime;
             float contactR2 = _contactRadius * _contactRadius;
@@ -77,8 +87,46 @@ namespace Tartisians.Gameplay.Enemies
                 _grid.Query(self, _separationRadius, _neighbors);
                 Vector3 separation = EnemySteering.Separation(self, _positions, _neighbors, _separationRadius);
 
+                // 글로벌 네비게이션: 흐름장 방향 샘플(장애물 우회). 없거나 셀 밖이면 직선 추적으로 폴백.
+                Vector3 seekDir = targetPos - self;
+                Vector3 avoidance = separation * _separationWeight;
+
+                if (_flowField != null)
+                {
+                    Vector3 flow = _flowField.SampleDirection(self);
+                    if (flow != Vector3.zero)
+                    {
+                        seekDir = flow;
+                    }
+
+                    // 벽 반발: 거리장 그래디언트로 벽에서 멀어지는 힘(가까울수록 강함)
+                    float wallDist = _flowField.DistanceToObstacle(self);
+                    if (wallDist < _wallClearance)
+                    {
+                        Vector3 grad = _flowField.ObstacleGradient(self);
+                        avoidance += grad * (_wallRepelWeight * (1f - wallDist / _wallClearance));
+                    }
+                }
+
                 float speed = enemy.Definition != null ? enemy.Definition.MoveSpeed : 3f;
-                Vector3 delta = EnemySteering.ComputeDelta(self, targetPos, separation, speed, _separationWeight, dt);
+                Vector3 delta = EnemySteering.ComputeMove(seekDir, avoidance, speed, dt);
+
+                // 침투 방지: 이동 후 위치가 장애물(적 반경) 안이면 그래디언트로 정확히 밀어낸다.
+                if (_flowField != null)
+                {
+                    Vector3 newPos = self + delta;
+                    float radius = enemy.Definition != null ? enemy.Definition.Radius : 0.5f;
+                    float d = _flowField.DistanceToObstacle(newPos);
+                    if (d < radius)
+                    {
+                        Vector3 grad = _flowField.ObstacleGradient(newPos);
+                        if (grad != Vector3.zero)
+                        {
+                            delta += grad * (radius - d);
+                        }
+                    }
+                }
+
                 enemy.Move(delta);
 
                 if (_playerHealth != null && (self - targetPos).sqrMagnitude <= contactR2)

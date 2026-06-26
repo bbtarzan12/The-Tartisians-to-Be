@@ -56,6 +56,9 @@ Cinemachine 쿼터뷰. 플레이어 추종(Follow) + 항상 바라봄(HardLookAt
 
 - 비주얼: 빨간 캡슐(공유 머티리얼 → GPU 인스턴싱 배칭)
 - AI: `EnemySimulation`이 매 FixedUpdate에 전체 적을 한 번에 갱신(데이터 지향). 이웃 질의는 `SpatialHashGrid`(물리 미사용). 파라미터: cellSize 2, 분리 반경 1.2, 분리 가중치 1.5, 접촉 반경 1.2.
+- **네비게이션(NavMesh 미사용):** `FlowField`(그리드 비용장→방향장, BFS). `FlowFieldController`가 영역(40×40, 셀1 → 40×40=1600칸)·장애물(`NavObstacle`)을 차단 셀로 표시하고 플레이어 셀 변경 시 재계산. 디버그 기즈모(격자·장애물·흐름·비용) 토글 제공.
+- **벽 회피(SDF, 물리 미사용):** 거리장(장애물까지 거리)+그래디언트로 벽 근처에서 부드러운 반발 조향 + 침투 시 정확한 밀어내기 → 적이 벽을 파고들지 않음(런타임 검증: 벽 안 강제 배치 8마리 전원 축출). 적은 자기 셀의 흐름 방향을 O(1) 샘플해 **장애물을 우회**(범위 밖이면 직선 추적 폴백). seek(흐름) + separation 합성.
+- 접촉 데미지: 적이 접촉 반경 내면 플레이어에 초당 데미지 적용(과거 `_playerHealth` 미해석 버그 수정됨).
 
 ## 7. 스폰 (Wave_Default)
 
@@ -127,7 +130,8 @@ Cinemachine 쿼터뷰. 플레이어 추종(Follow) + 항상 바라봄(HardLookAt
 - 어셈블리 레이어: Core / Data / Systems / Gameplay / UI / Tests
 - 패턴: 타입 EventBus · ServiceLocator · 상태기계 · Object Pooling(적·투사체·젬·VFX 전부)
 - **성능:** 동시 적 210체 @ 5.2ms(193fps)
-- 자동화 테스트 51개(EditMode 42 + PlayMode 9)
+- 네비게이션: 커스텀 **Flow Field**(NavMesh/A* 미사용) — 장애물 우회, O(1)/적
+- 자동화 테스트 56개(EditMode 46 + PlayMode 10)
 
 ## 14. 현재 한계 / 미구현 (논의 거리)
 
