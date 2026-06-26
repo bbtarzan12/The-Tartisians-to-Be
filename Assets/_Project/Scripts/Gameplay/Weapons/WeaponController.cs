@@ -16,6 +16,7 @@ namespace Tartisians.Gameplay.Weapons
     {
         [SerializeField] WeaponDefinition _weapon;
         [SerializeField] Projectile _projectilePrefab;
+        [SerializeField] float _leadFactor = 0.6f; // 예측 사격 강도(0=없음, 1=완전 선행)
 
         PrefabPool<Projectile> _pool;
         EnemyRegistry _registry;
@@ -95,7 +96,11 @@ namespace Tartisians.Gameplay.Weapons
                 return;
             }
 
-            Vector3 dir = nearest.Position - self;
+            float speed = _stats != null ? _stats.ProjectileSpeed : _weapon.ProjectileSpeed;
+
+            // 예측 사격: 투사체 도달 시점의 적 예상 위치를 겨냥(약간)
+            Vector3 aimPoint = Targeting.PredictAimPoint(self, nearest.Position, nearest.Velocity, speed, _leadFactor);
+            Vector3 dir = aimPoint - self;
             dir.y = 0f;
             if (dir.sqrMagnitude < 1e-4f)
             {
@@ -104,7 +109,6 @@ namespace Tartisians.Gameplay.Weapons
 
             dir.Normalize();
 
-            float speed = _stats != null ? _stats.ProjectileSpeed : _weapon.ProjectileSpeed;
             float damage = _stats != null ? _stats.WeaponDamage : _weapon.Damage;
             int pierce = _stats != null ? _stats.WeaponPierce : _weapon.Pierce;
             float lifetime = _stats != null ? _stats.WeaponLifetime : _weapon.Lifetime;

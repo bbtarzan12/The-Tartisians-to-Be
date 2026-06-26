@@ -24,6 +24,9 @@ namespace Tartisians.Gameplay.Enemies
         public Vector3 Position => _rb != null ? _rb.position : transform.position;
         public bool IsDead => _health != null && _health.IsDead;
 
+        /// <summary>직전 프레임 이동으로 추정한 현재 속도(예측 사격 등에 사용).</summary>
+        public Vector3 Velocity { get; private set; }
+
         /// <summary>사망/제거 시 스포너가 풀로 반환하도록 구독한다.</summary>
         public event Action<Enemy> Despawned;
 
@@ -59,6 +62,9 @@ namespace Tartisians.Gameplay.Enemies
 
         public void Move(Vector3 delta)
         {
+            float dt = Time.fixedDeltaTime;
+            Velocity = dt > 0f ? delta / dt : Vector3.zero;
+
             if (delta != Vector3.zero)
             {
                 _rb.MovePosition(_rb.position + delta);

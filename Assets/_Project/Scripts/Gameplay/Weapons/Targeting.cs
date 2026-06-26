@@ -23,5 +23,20 @@ namespace Tartisians.Gameplay.Weapons
 
             return best;
         }
+
+        /// <summary>
+        /// 예측 사격 조준점. 투사체 도달 시간(거리/속도)만큼 타깃이 더 이동할 위치를 1차 예측한다.
+        /// leadFactor로 예측 강도를 조절(0=현재 위치, 1=완전 선행). 순수 함수.
+        /// </summary>
+        public static Vector3 PredictAimPoint(Vector3 shooter, Vector3 targetPos, Vector3 targetVelocity, float projectileSpeed, float leadFactor)
+        {
+            if (projectileSpeed <= 0f)
+            {
+                return targetPos;
+            }
+
+            float travelTime = Vector3.Distance(shooter, targetPos) / projectileSpeed;
+            return targetPos + targetVelocity * (travelTime * leadFactor);
+        }
     }
 }
