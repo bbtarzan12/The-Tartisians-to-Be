@@ -1,7 +1,7 @@
 # 08. 현재 빌드 기획서 (As-Built)
 
 > 지금 **실제로 구현·동작하는** 게임을 역으로 정리한 문서다. 수치는 코드/에셋의 현재 값이며, 밸런싱·확장 논의의 기준점으로 쓴다. (앞을 내다보는 계획은 `05-roadmap.md`, 이 문서는 "지금 상태")
-> 기준 커밋: `6c98d08` · 테스트 84/84 (EditMode 71 + PlayMode 13) · 200체 @193fps
+> 기준 커밋: `bed8d3d` · 테스트 90/90 (EditMode 77 + PlayMode 13) · 200체 @193fps
 
 ---
 
@@ -94,15 +94,23 @@ Cinemachine 쿼터뷰. 플레이어 추종(Follow) + 항상 바라봄(HardLookAt
 - `BuildState` — 보유 무기(최대 6)·패시브(최대 6), 전역 수정자 집계, 진화 판정. `UpgradePool`이 동적 후보 생성 → `UpgradePicker`로 중복 없이 3택.
 - `WeaponController` — 인벤토리 실행기. 무기별 타이머로 fireMode 분기 발사. 시작 무기 = 마력 볼트.
 
-**무기 (시작 4종)**
-| 무기 | fireMode | 동작 | 기본값(Lv1) |
-|------|----------|------|------------|
-| 마력 볼트 | NearestProjectile | 사거리 내 최근접 자동조준·예측사격·LOS·벽충돌 | dmg5·간격0.6·속도14·사거리12·amount1 |
-| 서리 오라 | AuraField | 중심 반경 내 전체 즉시 데미지(투사체 없음) | dmg3·틱0.5·반경(area)3 |
-| 산탄 | SpreadProjectile | 최근접 방향 부채꼴 다발 | dmg4·간격0.9·amount3·부채각(area)40° |
-| 볼트 스톰 *(진화)* | NearestProjectile | 마력볼트 진화형, 다발 발사 | dmg14·간격0.35·관통2·amount3 |
+**기본 무기 5종**
+| 무기 | fireMode | 동작 |
+|------|----------|------|
+| 마력 볼트 | NearestProjectile | 사거리 내 최근접 자동조준·예측사격·LOS·벽충돌 |
+| 서리 오라 | AuraField | 중심 반경 내 전체 즉시 데미지(투사체 없음) |
+| 산탄 | SpreadProjectile | 최근접 방향 부채꼴 다발 |
+| 관통 창 | PierceLine | 최근접 방향 직선 띠 안 전체 즉시 데미지(`WeaponGeometry.PointInLane`) |
+| 궤도 위성 | Orbital | 주위 회전 위성(90°/s) 위치에서 펄스 데미지 |
 
-> Lance(관통 라인)·Orbit(궤도)는 8b 예정 — 미구현 fireMode는 최근접 투사체로 폴백.
+**진화 5종 (기본 무기 만렙 + 요구 패시브 만렙 → 진화형으로 교체)**
+| 진화 | 기본 무기 + 요구 패시브 |
+|------|------------------------|
+| 볼트 스톰 | 마력 볼트 + 다발(Amount) |
+| 블리자드 | 서리 오라 + 범위(Area) |
+| 플랙 | 산탄 + 탄속(Proj.Speed) |
+| 임페일러 | 관통 창 + 힘(Might) |
+| 헤일로 | 궤도 위성 + 재사용(Cooldown) |
 
 **패시브 6종 (전역 수정자)**
 | 패시브 | 효과 | 비고 |
@@ -152,13 +160,13 @@ Cinemachine 쿼터뷰. 플레이어 추종(Follow) + 항상 바라봄(HardLookAt
 - 패턴: 타입 EventBus · ServiceLocator · 상태기계 · Object Pooling(적·투사체·젬·VFX 전부)
 - **성능:** 동시 적 210체 @ 5.2ms(193fps)
 - 네비게이션: 커스텀 **Flow Field**(NavMesh/A* 미사용, 선호속도 소스) + **PBD 군중 솔버**(`CrowdSolver`, 적-적/적-벽 통합 제약) + 해석적 벽 충돌(`ObstacleField`)
-- 빌드/무기(M8): `WeaponInstance`(정의×레벨×패시브 수정자) · `BuildState`/`UpgradePool`(동적 후보·진화) · `WeaponController` 인벤토리(fireMode 분기)
-- 자동화 테스트 84개(EditMode 71 + PlayMode 13)
+- 빌드/무기(M8): `WeaponInstance`(정의×레벨×패시브 수정자) · `BuildState`/`UpgradePool`(동적 후보·진화) · `WeaponController` 인벤토리(5 fireMode 분기: Nearest/Spread/Aura/PierceLine/Orbital)
+- 자동화 테스트 90개(EditMode 77 + PlayMode 13)
 
 ## 14. 현재 한계 / 미구현 (논의 거리)
 
 1. **아트 일부 적용** — **플레이어 = Crystal 캐릭터 + Idle/Walk 애니메이션(Mecanim) 적용 완료.** 적은 아직 프리미티브 캡슐(수천 마리 크라우드 애니는 Animator 비용상 VAT+GPU 인스턴싱 예정). Leaf 캐릭터는 엘리트/보스용으로 보류.
-2. **무기/빌드 1차 (M8 8a)** — 무기 4종(볼트/오라/산탄/진화)+패시브 6종+진화 가동. **미구현:** Lance/Orbit fireMode(8b), 오라·진화 전용 VFX, 카드 아이콘/리롤/보유현황
+2. **무기/빌드 (M8 완료)** — 기본 무기 5종(볼트/오라/산탄/창/궤도)+진화 5종+패시브 6종, 동적 풀·진화 가동. **미구현:** 오라/창/궤도/진화 전용 VFX(현재 무비주얼 즉시 판정), 카드 아이콘/리롤/보유현황
 3. **웨이브 단조** — 시간대별 난도 곡선·보스 없음
 4. **카드 UI 기능 위주** — 아이콘·등급·보유현황·리롤 없음(회색 버튼)
 5. **최대 체력 업그레이드** — `RunStats`만 갱신, 현재 체력 즉시 회복은 미적용
