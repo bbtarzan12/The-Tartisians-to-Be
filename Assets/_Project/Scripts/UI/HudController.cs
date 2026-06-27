@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Tartisians.Data;
 using Tartisians.Gameplay.Combat;
 using Tartisians.Gameplay.Flow;
 using Tartisians.Gameplay.Progression;
@@ -190,14 +189,14 @@ namespace Tartisians.UI
             _overlayTitle.text = "레벨 업! — 업그레이드 선택";
             _cardRow.Clear();
 
-            IReadOnlyList<UpgradeDefinition> choices = _director.Choices;
+            IReadOnlyList<UpgradeOption> choices = _director.Choices;
             for (int i = 0; i < choices.Count; i++)
             {
                 int index = i;
-                UpgradeDefinition u = choices[i];
+                UpgradeOption u = choices[i];
                 var btn = new Button(() => _director.SelectUpgrade(index))
                 {
-                    text = $"{u.Title}\n(+{u.Value})"
+                    text = $"{u.Title}\n{u.Detail}"
                 };
                 btn.style.width = 160;
                 btn.style.height = 90;

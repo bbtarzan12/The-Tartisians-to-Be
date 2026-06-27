@@ -68,36 +68,4 @@ namespace Tartisians.Tests.EditMode
         }
     }
 
-    public class RunStatsTests
-    {
-        [Test]
-        public void Apply_WeaponDamage_Increases()
-        {
-            var s = new RunStats { WeaponDamage = 5f };
-            var up = ScriptableObject.CreateInstance<Tartisians.Data.UpgradeDefinition>();
-            SetKind(up, Tartisians.Data.UpgradeKind.WeaponDamage, 3f);
-            s.Apply(up);
-            Assert.AreEqual(8f, s.WeaponDamage);
-            Object.DestroyImmediate(up);
-        }
-
-        [Test]
-        public void Apply_FireRate_ReducesInterval()
-        {
-            var s = new RunStats { WeaponFireInterval = 1f };
-            var up = ScriptableObject.CreateInstance<Tartisians.Data.UpgradeDefinition>();
-            SetKind(up, Tartisians.Data.UpgradeKind.WeaponFireRate, 1f); // +100% rate → interval /2
-            s.Apply(up);
-            Assert.AreEqual(0.5f, s.WeaponFireInterval, 1e-4f);
-            Object.DestroyImmediate(up);
-        }
-
-        static void SetKind(Tartisians.Data.UpgradeDefinition up, Tartisians.Data.UpgradeKind kind, float value)
-        {
-            var so = new UnityEditor.SerializedObject(up);
-            so.FindProperty("_kind").enumValueIndex = (int)kind;
-            so.FindProperty("_value").floatValue = value;
-            so.ApplyModifiedPropertiesWithoutUndo();
-        }
-    }
 }

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Tartisians.Core.Events;
-using Tartisians.Data;
 using Tartisians.Gameplay.Combat;
 using Tartisians.Gameplay.Events;
 using Tartisians.Gameplay.Progression;
@@ -24,7 +23,7 @@ namespace Tartisians.Gameplay.Flow
         Health _playerHealth;
 
         int _pendingLevelUps;
-        readonly List<UpgradeDefinition> _choices = new();
+        readonly List<UpgradeOption> _choices = new();
 
         EventBinding<LevelUpEvent> _levelUpBinding;
         EventBinding<EnemyDiedEvent> _enemyDiedBinding;
@@ -33,7 +32,7 @@ namespace Tartisians.Gameplay.Flow
         public int Kills { get; private set; }
         public float TimeRemaining => _clock != null ? _clock.Remaining : _survivalDuration;
         public float SurvivalDuration => _survivalDuration;
-        public IReadOnlyList<UpgradeDefinition> Choices => _choices;
+        public IReadOnlyList<UpgradeOption> Choices => _choices;
 
         /// <summary>상태/표시값이 바뀔 때 발생(HUD 갱신용).</summary>
         public event Action Changed;

@@ -10,27 +10,27 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 91d13ca48c053f946a8e530d32c423e2, type: 3}
-  m_Name: Weapon_MagicBolt
+  m_Name: Weapon_Scatter
   m_EditorClassIdentifier: Game.Data::Tartisians.Data.WeaponDefinition
   _id: 
-  _displayName: "\uB9C8\uB825 \uBCFC\uD2B8"
+  _displayName: "\uC0B0\uD0C4"
   _description: 
   _icon: {fileID: 0}
-  _fireMode: 0
+  _fireMode: 1
   _maxLevel: 8
-  _fireInterval: 0.6
-  _damage: 5
-  _projectileSpeed: 14
+  _fireInterval: 0.9
+  _damage: 4
+  _projectileSpeed: 12
   _pierce: 0
-  _range: 12
-  _lifetime: 2
-  _amount: 1
-  _area: 1
-  _damagePerLevel: 1.5
-  _fireRateReducePerLevel: 0.06
+  _range: 9
+  _lifetime: 1.2
+  _amount: 3
+  _area: 40
+  _damagePerLevel: 1
+  _fireRateReducePerLevel: 0.05
   _projectileSpeedPerLevel: 0
-  _piercePerLevel: 0.2
-  _amountPerLevel: 0.34
-  _areaPerLevel: 0
-  _evolvesInto: {fileID: 11400000, guid: 4e9d9f5345398a64cbc8eeb275e92572, type: 2}
-  _requiredPassive: {fileID: 11400000, guid: 1e2b4e902b6f7af4798922e97e9c56c4, type: 2}
+  _piercePerLevel: 0
+  _amountPerLevel: 0.5
+  _areaPerLevel: 3
+  _evolvesInto: {fileID: 0}
+  _requiredPassive: {fileID: 0}

@@ -7109,17 +7109,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Gameplay::Tartisians.Gameplay.Progression.ProgressionSystem
   _player: {fileID: 11400000, guid: aa00414c1eed61b4e8da5aeb4532c232, type: 2}
-  _weapon: {fileID: 11400000, guid: ed346d9b3ee029542a782e0ed3f557e2, type: 2}
-  _upgrades:
-  - {fileID: 11400000, guid: 4ad87169355234146977697bcf59f872, type: 2}
-  - {fileID: 11400000, guid: 925f673f628ae0c41881bc8538f6ed0e, type: 2}
-  - {fileID: 11400000, guid: e6b145a1542a9b14d87417eacde095db, type: 2}
-  - {fileID: 11400000, guid: a85fe545c067de54990ee5e885e8d972, type: 2}
-  - {fileID: 11400000, guid: bddb2d3479ecc1040a2508cc4f1fe84c, type: 2}
-  - {fileID: 11400000, guid: 112987cfb4e63ea498fc2ab5c18b6b84, type: 2}
-  - {fileID: 11400000, guid: 53877b6f18afb424ba796f94fff86a2b, type: 2}
-  - {fileID: 11400000, guid: cdf3124688b159a4e86bd0f404097875, type: 2}
+  _startingWeapon: {fileID: 11400000, guid: ed346d9b3ee029542a782e0ed3f557e2, type: 2}
+  _weaponCatalog:
+  - {fileID: 11400000, guid: a90472a282deed847a0325a1bc107e4f, type: 2}
+  - {fileID: 11400000, guid: 216e3bafe46491e46bde1d9a96089ede, type: 2}
+  _passiveCatalog:
+  - {fileID: 11400000, guid: 38b9b73a30631a941b492232e74be9d6, type: 2}
+  - {fileID: 11400000, guid: c6be28c3c31f83d4184a1474fcd594f5, type: 2}
+  - {fileID: 11400000, guid: 9c6cf872cf2602b45a0ca484a0d50d4b, type: 2}
+  - {fileID: 11400000, guid: 1e2b4e902b6f7af4798922e97e9c56c4, type: 2}
+  - {fileID: 11400000, guid: d7eacddb42be1a34497c1b8066a69c74, type: 2}
+  - {fileID: 11400000, guid: f2c6b2c804d19b14a836ab22d22f093c, type: 2}
   _choiceCount: 3
+  _maxWeapons: 6
+  _maxPassives: 6
 --- !u!4 &1879261389
 Transform:
   m_ObjectHideFlags: 0
@@ -7859,7 +7862,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43dfa2c0de4414c48aff44eacf075029, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game.Gameplay::Tartisians.Gameplay.Weapons.WeaponController
-  _weapon: {fileID: 0}
   _projectilePrefab: {fileID: 3400669700419219907, guid: ff7d014b37792eb40bcbf11b4c535cd1, type: 3}
   _leadFactor: 0.6
 --- !u!1660057539 &9223372036854775807

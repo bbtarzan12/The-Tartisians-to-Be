@@ -3,6 +3,7 @@ using Tartisians.Core.Services;
 using Tartisians.Data;
 using Tartisians.Gameplay.Enemies;
 using Tartisians.Gameplay.Progression;
+using Tartisians.Systems.Combat;
 using Tartisians.Systems.Crowd;
 using Tartisians.Systems.Pooling;
 using UnityEngine;
@@ -10,23 +11,20 @@ using UnityEngine;
 namespace Tartisians.Gameplay.Weapons
 {
     /// <summary>
-    /// 플레이어에 부착되어 일정 간격으로 사거리 내 최근접 적을 향해 투사체를 자동 발사한다.
-    /// 무기 수치는 RunStats(업그레이드 반영)에서 읽고, 없으면 WeaponDefinition로 폴백한다.
+    /// 플레이어의 무기 인벤토리 실행기. <see cref="BuildState"/>의 보유 무기 전부를 각자
+    /// 발사 타이머로 굴리고, 무기의 fireMode에 따라 발사 방식을 분기한다(M8).
+    /// 유효 스탯 = WeaponInstance(정의×레벨×전역 패시브 수정자).
     /// </summary>
     public sealed class WeaponController : MonoBehaviour
     {
-        [SerializeField] WeaponDefinition _weapon;
         [SerializeField] Projectile _projectilePrefab;
-        [SerializeField] float _leadFactor = 0.6f; // 예측 사격 강도(0=없음, 1=완전 선행)
+        [SerializeField] float _leadFactor = 0.6f; // 예측 사격 강도(0=없음)
 
         PrefabPool<Projectile> _pool;
         EnemyRegistry _registry;
-        RunStats _stats;
+        BuildState _build;
         ObstacleField _obstacles;
-        float _timer;
-
-        float Range => _stats != null ? _stats.WeaponRange : (_weapon != null ? _weapon.Range : 0f);
-        float FireInterval => _stats != null ? _stats.WeaponFireInterval : (_weapon != null ? _weapon.FireInterval : 1f);
+        readonly List<Enemy> _candidates = new();
 
         void Awake()
         {
@@ -36,7 +34,7 @@ namespace Tartisians.Gameplay.Weapons
             }
 
             ServiceLocator.TryGet(out _registry);
-            ServiceLocator.TryGet(out _stats);
+            ServiceLocator.TryGet(out _build);
         }
 
         void Update()
@@ -51,25 +49,13 @@ namespace Tartisians.Gameplay.Weapons
                 ServiceLocator.TryGet(out _registry);
             }
 
-            if (_stats == null)
+            if (_build == null)
             {
-                ServiceLocator.TryGet(out _stats);
-            }
-
-            _timer += Time.deltaTime;
-            float interval = FireInterval;
-            while (_timer >= interval)
-            {
-                _timer -= interval;
-                Fire();
-            }
-        }
-
-        void Fire()
-        {
-            if (_registry == null || _registry.Count == 0)
-            {
-                return;
+                ServiceLocator.TryGet(out _build);
+                if (_build == null)
+                {
+                    return;
+                }
             }
 
             if (_obstacles == null)
@@ -77,10 +63,190 @@ namespace Tartisians.Gameplay.Weapons
                 ServiceLocator.TryGet(out _obstacles);
             }
 
-            Vector3 self = transform.position;
-            Enemy nearest = null;
-            float bestSq = Range * Range;
+            PassiveModifiers mods = _build.ComputeModifiers();
+            float dt = Time.deltaTime;
+            List<WeaponInstance> weapons = _build.Weapons;
+            for (int i = 0; i < weapons.Count; i++)
+            {
+                WeaponInstance w = weapons[i];
+                EffectiveWeaponStats eff = w.Compute(mods);
+                w.FireTimer += dt;
 
+                int safety = 4; // 한 프레임 다발 발사 방지
+                while (w.FireTimer >= eff.FireInterval && safety-- > 0)
+                {
+                    w.FireTimer -= eff.FireInterval;
+                    Fire(w.Def.FireMode, eff);
+                }
+
+                if (w.FireTimer > eff.FireInterval)
+                {
+                    w.FireTimer = 0f; // 과누적 클램프(긴 프레임/정지 후 복귀)
+                }
+            }
+        }
+
+        void Fire(WeaponFireMode mode, in EffectiveWeaponStats eff)
+        {
+            switch (mode)
+            {
+                case WeaponFireMode.SpreadProjectile: FireSpread(eff); break;
+                case WeaponFireMode.AuraField: FireAura(eff); break;
+                // PierceLine / Orbital은 8b. 미구현 모드는 최근접 투사체로 폴백.
+                default: FireNearest(eff); break;
+            }
+        }
+
+        // 사거리 내 시야 확보된 최근접 적 eff.Amount명에게 각각 1발.
+        void FireNearest(in EffectiveWeaponStats eff)
+        {
+            if (_registry == null || _registry.Count == 0)
+            {
+                return;
+            }
+
+            Vector3 self = transform.position;
+            GatherVisible(self, eff.Range);
+            if (_candidates.Count == 0)
+            {
+                return;
+            }
+
+            int shots = Mathf.Min(eff.Amount, _candidates.Count);
+            for (int s = 0; s < shots; s++)
+            {
+                // s번째로 가까운 적을 앞으로 선택정렬
+                int best = s;
+                float bestSq = (_candidates[s].Position - self).sqrMagnitude;
+                for (int j = s + 1; j < _candidates.Count; j++)
+                {
+                    float d = (_candidates[j].Position - self).sqrMagnitude;
+                    if (d < bestSq) { bestSq = d; best = j; }
+                }
+
+                (_candidates[s], _candidates[best]) = (_candidates[best], _candidates[s]);
+                LaunchAt(_candidates[s], eff, self);
+            }
+        }
+
+        // 최근접 적 방향을 중심으로 eff.Amount발을 eff.Area(부채각, 도) 범위로 분산.
+        void FireSpread(in EffectiveWeaponStats eff)
+        {
+            Vector3 self = transform.position;
+            Enemy nearest = NearestVisible(self, eff.Range);
+            if (nearest == null)
+            {
+                return;
+            }
+
+            Vector3 dir = nearest.Position - self;
+            dir.y = 0f;
+            if (dir.sqrMagnitude < 1e-4f)
+            {
+                return;
+            }
+
+            dir.Normalize();
+            float spawnY = nearest.Position.y;
+            int n = Mathf.Max(1, eff.Amount);
+            float fan = Mathf.Max(0f, eff.Area);
+            float start = -fan * 0.5f;
+            float step = n > 1 ? fan / (n - 1) : 0f;
+
+            for (int i = 0; i < n; i++)
+            {
+                float ang = n == 1 ? 0f : start + step * i;
+                Vector3 d = Quaternion.Euler(0f, ang, 0f) * dir;
+                Vector3 spawn = self;
+                spawn.y = spawnY;
+                Projectile p = _pool.Get();
+                p.transform.position = spawn;
+                p.Launch(d, eff.ProjectileSpeed, eff.Damage, eff.Pierce, eff.Lifetime, _pool);
+            }
+        }
+
+        // 플레이어 중심 eff.Area 반경 내 모든 적에게 즉시 데미지(투사체 없음).
+        void FireAura(in EffectiveWeaponStats eff)
+        {
+            if (_registry == null)
+            {
+                return;
+            }
+
+            Vector3 self = transform.position;
+            float rSq = eff.Area * eff.Area;
+            IReadOnlyList<Enemy> active = _registry.Active;
+            for (int i = 0; i < active.Count; i++)
+            {
+                Enemy e = active[i];
+                if (e.IsDead)
+                {
+                    continue;
+                }
+
+                Vector3 d = e.Position - self;
+                d.y = 0f;
+                if (d.sqrMagnitude <= rSq)
+                {
+                    DamageSystem.Apply(e, eff.Damage);
+                }
+            }
+        }
+
+        void LaunchAt(Enemy target, in EffectiveWeaponStats eff, Vector3 self)
+        {
+            Vector3 aim = Targeting.PredictAimPoint(self, target.Position, target.Velocity, eff.ProjectileSpeed, _leadFactor);
+            Vector3 dir = aim - self;
+            dir.y = 0f;
+            if (dir.sqrMagnitude < 1e-4f)
+            {
+                return;
+            }
+
+            dir.Normalize();
+            Vector3 spawn = self;
+            spawn.y = target.Position.y;
+            Projectile p = _pool.Get();
+            p.transform.position = spawn;
+            p.Launch(dir, eff.ProjectileSpeed, eff.Damage, eff.Pierce, eff.Lifetime, _pool);
+        }
+
+        void GatherVisible(Vector3 self, float range)
+        {
+            _candidates.Clear();
+            IReadOnlyList<Enemy> active = _registry.Active;
+            float rangeSq = range * range;
+            for (int i = 0; i < active.Count; i++)
+            {
+                Enemy e = active[i];
+                if (e.IsDead)
+                {
+                    continue;
+                }
+
+                if ((e.Position - self).sqrMagnitude > rangeSq)
+                {
+                    continue;
+                }
+
+                if (_obstacles != null && _obstacles.Blocks(self, e.Position))
+                {
+                    continue;
+                }
+
+                _candidates.Add(e);
+            }
+        }
+
+        Enemy NearestVisible(Vector3 self, float range)
+        {
+            if (_registry == null)
+            {
+                return null;
+            }
+
+            Enemy best = null;
+            float bestSq = range * range;
             IReadOnlyList<Enemy> active = _registry.Active;
             for (int i = 0; i < active.Count; i++)
             {
@@ -96,46 +262,16 @@ namespace Tartisians.Gameplay.Weapons
                     continue;
                 }
 
-                // 벽 너머의 적은 조준하지 않는다(시야 차단 → 다음 후보).
                 if (_obstacles != null && _obstacles.Blocks(self, e.Position))
                 {
                     continue;
                 }
 
                 bestSq = sq;
-                nearest = e;
+                best = e;
             }
 
-            if (nearest == null)
-            {
-                return;
-            }
-
-            float speed = _stats != null ? _stats.ProjectileSpeed : _weapon.ProjectileSpeed;
-
-            // 예측 사격: 투사체 도달 시점의 적 예상 위치를 겨냥(약간)
-            Vector3 aimPoint = Targeting.PredictAimPoint(self, nearest.Position, nearest.Velocity, speed, _leadFactor);
-            Vector3 dir = aimPoint - self;
-            dir.y = 0f;
-            if (dir.sqrMagnitude < 1e-4f)
-            {
-                return;
-            }
-
-            dir.Normalize();
-
-            float damage = _stats != null ? _stats.WeaponDamage : _weapon.Damage;
-            int pierce = _stats != null ? _stats.WeaponPierce : _weapon.Pierce;
-            float lifetime = _stats != null ? _stats.WeaponLifetime : _weapon.Lifetime;
-
-            // 고정 높이가 아니라 대상 적의 높이(게임플레이 평면)에서 발사한다.
-            // 키 작은 적도 투사체에 맞도록 한다(투사체는 dir.y=0으로 수평 비행).
-            Vector3 spawn = self;
-            spawn.y = nearest.Position.y;
-
-            Projectile proj = _pool.Get();
-            proj.transform.position = spawn;
-            proj.Launch(dir, speed, damage, pierce, lifetime, _pool);
+            return best;
         }
     }
 }
