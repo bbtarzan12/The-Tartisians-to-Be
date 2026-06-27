@@ -32,5 +32,5 @@ MonoBehaviour:
   _piercePerLevel: 0
   _amountPerLevel: 0
   _areaPerLevel: 0.25
-  _evolvesInto: {fileID: 0}
-  _requiredPassive: {fileID: 0}
+  _evolvesInto: {fileID: 11400000, guid: bac278377723e7349ba228474ea56af5, type: 2}
+  _requiredPassive: {fileID: 11400000, guid: 9c6cf872cf2602b45a0ca484a0d50d4b, type: 2}

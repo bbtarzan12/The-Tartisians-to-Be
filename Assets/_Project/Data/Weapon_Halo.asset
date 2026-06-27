@@ -10,27 +10,27 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 91d13ca48c053f946a8e530d32c423e2, type: 3}
-  m_Name: Weapon_Scatter
+  m_Name: Weapon_Halo
   m_EditorClassIdentifier: Game.Data::Tartisians.Data.WeaponDefinition
   _id: 
-  _displayName: "\uC0B0\uD0C4"
+  _displayName: "\uD5E4\uC77C\uB85C"
   _description: 
   _icon: {fileID: 0}
-  _fireMode: 1
-  _maxLevel: 8
-  _fireInterval: 0.9
-  _damage: 4
-  _projectileSpeed: 12
+  _fireMode: 4
+  _maxLevel: 1
+  _fireInterval: 0.3
+  _damage: 12
+  _projectileSpeed: 14
   _pierce: 0
-  _range: 9
-  _lifetime: 1.2
-  _amount: 3
-  _area: 40
+  _range: 12
+  _lifetime: 2
+  _amount: 4
+  _area: 4
   _damagePerLevel: 1
-  _fireRateReducePerLevel: 0.05
+  _fireRateReducePerLevel: 0
   _projectileSpeedPerLevel: 0
   _piercePerLevel: 0
-  _amountPerLevel: 0.5
-  _areaPerLevel: 3
-  _evolvesInto: {fileID: 11400000, guid: 3a9b641d5a59d01409480ac975fefd42, type: 2}
-  _requiredPassive: {fileID: 11400000, guid: d7eacddb42be1a34497c1b8066a69c74, type: 2}
+  _amountPerLevel: 0
+  _areaPerLevel: 0
+  _evolvesInto: {fileID: 0}
+  _requiredPassive: {fileID: 0}

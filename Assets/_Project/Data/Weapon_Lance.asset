@@ -10,27 +10,27 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 91d13ca48c053f946a8e530d32c423e2, type: 3}
-  m_Name: Weapon_Scatter
+  m_Name: Weapon_Lance
   m_EditorClassIdentifier: Game.Data::Tartisians.Data.WeaponDefinition
   _id: 
-  _displayName: "\uC0B0\uD0C4"
+  _displayName: "\uAD00\uD1B5 \uCC3D"
   _description: 
   _icon: {fileID: 0}
-  _fireMode: 1
+  _fireMode: 3
   _maxLevel: 8
-  _fireInterval: 0.9
-  _damage: 4
-  _projectileSpeed: 12
+  _fireInterval: 1.1
+  _damage: 8
+  _projectileSpeed: 14
   _pierce: 0
-  _range: 9
-  _lifetime: 1.2
-  _amount: 3
-  _area: 40
-  _damagePerLevel: 1
+  _range: 10
+  _lifetime: 2
+  _amount: 1
+  _area: 10
+  _damagePerLevel: 1.5
   _fireRateReducePerLevel: 0.05
   _projectileSpeedPerLevel: 0
   _piercePerLevel: 0
-  _amountPerLevel: 0.5
-  _areaPerLevel: 3
-  _evolvesInto: {fileID: 11400000, guid: 3a9b641d5a59d01409480ac975fefd42, type: 2}
-  _requiredPassive: {fileID: 11400000, guid: d7eacddb42be1a34497c1b8066a69c74, type: 2}
+  _amountPerLevel: 0
+  _areaPerLevel: 0.6
+  _evolvesInto: {fileID: 11400000, guid: c64a5c323f70a5744bc5fa2ea6c8e63c, type: 2}
+  _requiredPassive: {fileID: 11400000, guid: 38b9b73a30631a941b492232e74be9d6, type: 2}

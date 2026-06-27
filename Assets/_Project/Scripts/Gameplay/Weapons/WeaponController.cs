@@ -92,7 +92,8 @@ namespace Tartisians.Gameplay.Weapons
             {
                 case WeaponFireMode.SpreadProjectile: FireSpread(eff); break;
                 case WeaponFireMode.AuraField: FireAura(eff); break;
-                // PierceLine / Orbital은 8b. 미구현 모드는 최근접 투사체로 폴백.
+                case WeaponFireMode.PierceLine: FireLance(eff); break;
+                case WeaponFireMode.Orbital: FireOrbit(eff); break;
                 default: FireNearest(eff); break;
             }
         }
@@ -189,6 +190,84 @@ namespace Tartisians.Gameplay.Weapons
                 if (d.sqrMagnitude <= rSq)
                 {
                     DamageSystem.Apply(e, eff.Damage);
+                }
+            }
+        }
+
+        // 최근접 적 방향으로 길이 eff.Area·반폭 고정인 관통 라인 안의 모든 적에게 즉시 데미지.
+        void FireLance(in EffectiveWeaponStats eff)
+        {
+            if (_registry == null)
+            {
+                return;
+            }
+
+            Vector3 self = transform.position;
+            Enemy nearest = NearestVisible(self, Mathf.Max(eff.Range, eff.Area));
+            if (nearest == null)
+            {
+                return;
+            }
+
+            Vector3 dir = nearest.Position - self;
+            dir.y = 0f;
+            if (dir.sqrMagnitude < 1e-4f)
+            {
+                return;
+            }
+
+            dir.Normalize();
+            float length = Mathf.Max(1f, eff.Area);
+            const float halfWidth = 0.9f;
+            IReadOnlyList<Enemy> active = _registry.Active;
+            for (int i = 0; i < active.Count; i++)
+            {
+                Enemy e = active[i];
+                if (e.IsDead)
+                {
+                    continue;
+                }
+
+                if (WeaponGeometry.PointInLane(self, dir, length, halfWidth, e.Position))
+                {
+                    DamageSystem.Apply(e, eff.Damage);
+                }
+            }
+        }
+
+        // 플레이어 주위를 도는 eff.Amount개 위성 위치에서 펄스 데미지(상시 회전, 90°/s).
+        void FireOrbit(in EffectiveWeaponStats eff)
+        {
+            if (_registry == null)
+            {
+                return;
+            }
+
+            Vector3 self = transform.position;
+            int n = Mathf.Max(1, eff.Amount);
+            float radius = Mathf.Max(0.5f, eff.Area);
+            const float satRadiusSq = 1.0f; // 위성 접촉 반경^2
+            float baseAng = Time.time * (90f * Mathf.Deg2Rad);
+            IReadOnlyList<Enemy> active = _registry.Active;
+
+            for (int k = 0; k < n; k++)
+            {
+                float a = baseAng + k * (Mathf.PI * 2f / n);
+                Vector3 sat = self + new Vector3(Mathf.Cos(a), 0f, Mathf.Sin(a)) * radius;
+                for (int i = 0; i < active.Count; i++)
+                {
+                    Enemy e = active[i];
+                    if (e.IsDead)
+                    {
+                        continue;
+                    }
+
+                    Vector3 d = e.Position - sat;
+                    d.y = 0f;
+                    if (d.sqrMagnitude <= satRadiusSq)
+                    {
+                        DamageSystem.Apply(e, eff.Damage);
+                    }
                 }
             }
         }
