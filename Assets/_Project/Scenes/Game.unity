@@ -3638,6 +3638,7 @@ GameObject:
   - component: {fileID: 1342818892}
   - component: {fileID: 1342818891}
   - component: {fileID: 1342818890}
+  - component: {fileID: 1342818893}
   m_Layer: 0
   m_Name: HUD
   m_TagString: Untagged
@@ -3695,6 +3696,25 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1342818893
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1342818889}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b753ef3cf7dbcd478955d93bdb38e9b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.UI::Tartisians.UI.DamageNumberLayer
+  _maxNumbers: 64
+  _lifetime: 0.7
+  _riseWorld: 1.6
+  _fadeStart: 0.45
+  _baseFontSize: 18
+  _popScale: 1.6
+  _popTime: 0.18
 --- !u!43 &1416701472
 Mesh:
   m_ObjectHideFlags: 0
@@ -3883,6 +3903,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1426712773}
   - component: {fileID: 1426712772}
+  - component: {fileID: 1426712774}
   m_Layer: 0
   m_Name: VfxSystem
   m_TagString: Untagged
@@ -3919,6 +3940,24 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1426712774
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1426712771}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42b4f108d3c0a7742ae7536476d1a5e5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Gameplay::Tartisians.Gameplay.Vfx.ImpactVfx
+  _additiveMat: {fileID: 2100000, guid: 0e6460aee0b6789468301917cf30eacd, type: 2}
+  _maxSparks: 48
+  _lifetime: 0.16
+  _startScale: 0.25
+  _endScale: 0.95
+  _maxPerFrame: 6
 --- !u!43 &1442556375
 Mesh:
   m_ObjectHideFlags: 0

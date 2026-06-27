@@ -1,7 +1,10 @@
 using System;
 using Tartisians.Core.Combat;
+using Tartisians.Core.Events;
+using Tartisians.Core.Feedback;
 using Tartisians.Data;
 using Tartisians.Gameplay.Combat;
+using Tartisians.Gameplay.Events;
 using Tartisians.Systems.Pooling;
 using UnityEngine;
 
@@ -14,11 +17,20 @@ namespace Tartisians.Gameplay.Enemies
     [RequireComponent(typeof(Rigidbody))]
     public sealed class Enemy : MonoBehaviour, IPoolable, IDamageable
     {
+        const float FlashDuration = 0.08f;  // 흰색 번쩍 지속
+        const float PunchDuration = 0.13f;  // 스케일 펀치 지속
+        const float PunchStrength = 0.28f;  // 펀치 최대 확대율
+        static readonly Color FlashColor = Color.white;
+        static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
+
         [SerializeField] EnemyDefinition _definition;
 
         Rigidbody _rb;
         Health _health;
         MeshRenderer _renderer;
+        MaterialPropertyBlock _mpb;
+        Color _baseColor = Color.white;
+        HitReactState _react;
 
         public EnemyDefinition Definition => _definition;
         public Vector3 Position => _rb != null ? _rb.position : transform.position;
@@ -35,6 +47,7 @@ namespace Tartisians.Gameplay.Enemies
             _rb = GetComponent<Rigidbody>();
             TryGetComponent(out _health);
             _renderer = GetComponentInChildren<MeshRenderer>();
+            _mpb = new MaterialPropertyBlock();
         }
 
         public void Initialize(EnemyDefinition definition)
@@ -58,6 +71,13 @@ namespace Tartisians.Gameplay.Enemies
             {
                 _renderer.sharedMaterial = _definition.Material;
             }
+
+            // 피격 플래시의 복원 기준색을 캐시하고 시각 상태를 초기화한다.
+            _baseColor = _definition.Material != null && _definition.Material.HasProperty(BaseColorId)
+                ? _definition.Material.GetColor(BaseColorId)
+                : Color.white;
+            _react.Reset();
+            ApplyFx();
         }
 
         public void Move(Vector3 delta)
@@ -91,11 +111,54 @@ namespace Tartisians.Gameplay.Enemies
                 return;
             }
 
+            float before = _health.Current;
             _health.TakeDamage(amount);
-            if (_health.IsDead)
+            float applied = before - _health.Current;
+            bool dead = _health.IsDead;
+
+            // 손맛: 피격 반응 + 데미지 숫자/임팩트 VFX용 이벤트(실제 적용량 기준).
+            if (applied > 0f)
+            {
+                _react.Trigger(FlashDuration, PunchDuration);
+                ApplyFx(); // 같은 프레임에 즉시 번쩍
+                EventBus<EnemyHitEvent>.Raise(new EnemyHitEvent
+                {
+                    Position = Position,
+                    Damage = applied,
+                    Lethal = dead,
+                });
+            }
+
+            if (dead)
             {
                 Despawned?.Invoke(this);
             }
+        }
+
+        /// <summary>피격 반응 감쇠를 EnemySimulation의 중앙 루프에서 틱한다(적별 Update 없음).</summary>
+        public void TickFx(float dt)
+        {
+            if (!_react.IsActive)
+            {
+                return;
+            }
+
+            _react.Tick(dt);
+            ApplyFx();
+        }
+
+        void ApplyFx()
+        {
+            if (_renderer != null)
+            {
+                Color c = Color.Lerp(_baseColor, FlashColor, _react.FlashAmount);
+                _renderer.GetPropertyBlock(_mpb);
+                _mpb.SetColor(BaseColorId, c);
+                _renderer.SetPropertyBlock(_mpb);
+            }
+
+            Vector3 baseScale = _definition != null ? _definition.Scale : Vector3.one;
+            transform.localScale = baseScale * _react.ScaleMultiplier(PunchStrength);
         }
 
         public void OnSpawned()
@@ -104,6 +167,10 @@ namespace Tartisians.Gameplay.Enemies
             {
                 _health?.Configure(_definition.MaxHealth);
             }
+
+            // 풀 재사용 시 직전 인스턴스의 플래시/펀치 잔상 제거.
+            _react.Reset();
+            ApplyFx();
         }
 
         public void OnDespawned()

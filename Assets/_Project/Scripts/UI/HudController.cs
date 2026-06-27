@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Tartisians.Core.Feedback;
 using Tartisians.Gameplay.Combat;
 using Tartisians.Gameplay.Flow;
 using Tartisians.Gameplay.Progression;
@@ -28,6 +29,14 @@ namespace Tartisians.UI
         VisualElement _overlay;
         Label _overlayTitle;
         VisualElement _cardRow;
+        VisualElement _vignette;
+
+        DangerMeter _danger;
+        bool _hitSubscribed;
+        const float VignetteEdge = 80f;        // 화면 가장자리 붉은 띠 두께(px)
+        const float DangerDecayRate = 6f;      // 지수 감쇠율(지속 피격 시 중간값 수렴)
+        const float DangerHitScale = 0.5f;     // 데미지→강도 환산
+        const float VignetteMaxAlpha = 0.85f;
 
         bool _built;
         GameDirector.Phase _lastPhase = GameDirector.Phase.Playing;
@@ -58,13 +67,69 @@ namespace Tartisians.UI
                 _built = true;
             }
 
+            EnsureHitSubscription();
             RefreshValues();
             RefreshPhase();
+            RefreshVignette();
+        }
+
+        void OnDisable()
+        {
+            if (_hitSubscribed && _playerHealth != null)
+            {
+                _playerHealth.Damaged -= OnPlayerDamaged;
+            }
+
+            _hitSubscribed = false;
+        }
+
+        void EnsureHitSubscription()
+        {
+            if (_hitSubscribed || _playerHealth == null)
+            {
+                return;
+            }
+
+            _playerHealth.Damaged += OnPlayerDamaged;
+            _hitSubscribed = true;
+        }
+
+        void OnPlayerDamaged(float amount) => _danger.Hit(Mathf.Clamp01(amount * DangerHitScale));
+
+        void RefreshVignette()
+        {
+            if (_vignette == null)
+            {
+                return;
+            }
+
+            _danger.Decay(Time.deltaTime, DangerDecayRate);
+            _vignette.style.opacity = _danger.Value * VignetteMaxAlpha;
         }
 
         void Build(VisualElement root)
         {
             root.Clear();
+
+            // 피격 비네트: 화면 가장자리 붉은 띠(테두리). 알파는 DangerMeter가 구동.
+            _vignette = new VisualElement();
+            _vignette.style.position = Position.Absolute;
+            _vignette.style.left = 0;
+            _vignette.style.right = 0;
+            _vignette.style.top = 0;
+            _vignette.style.bottom = 0;
+            _vignette.pickingMode = PickingMode.Ignore;
+            var edge = new Color(0.85f, 0.05f, 0.05f, 0.9f);
+            _vignette.style.borderTopColor = edge;
+            _vignette.style.borderBottomColor = edge;
+            _vignette.style.borderLeftColor = edge;
+            _vignette.style.borderRightColor = edge;
+            _vignette.style.borderTopWidth = VignetteEdge;
+            _vignette.style.borderBottomWidth = VignetteEdge;
+            _vignette.style.borderLeftWidth = VignetteEdge;
+            _vignette.style.borderRightWidth = VignetteEdge;
+            _vignette.style.opacity = 0f;
+            root.Add(_vignette);
 
             var topBar = new VisualElement();
             topBar.style.flexDirection = FlexDirection.Row;

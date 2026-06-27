@@ -139,6 +139,7 @@ namespace Tartisians.Gameplay.Enemies
                 Vector3 newP = _positions[i];
                 Vector3 step = new Vector3(newP.x - oldP.x, 0f, newP.z - oldP.z);
                 e.Move(step);
+                e.TickFx(dt); // 피격 플래시/펀치 감쇠(중앙 틱)
 
                 if (_playerHealth != null)
                 {

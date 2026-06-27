@@ -1,7 +1,7 @@
 # 08. 현재 빌드 기획서 (As-Built)
 
 > 지금 **실제로 구현·동작하는** 게임을 역으로 정리한 문서다. 수치는 코드/에셋의 현재 값이며, 밸런싱·확장 논의의 기준점으로 쓴다. (앞을 내다보는 계획은 `05-roadmap.md`, 이 문서는 "지금 상태")
-> 기준 커밋: `30ff87d` · 테스트 90/90 (EditMode 77 + PlayMode 13) · 200체 @193fps
+> 기준: 손맛(피격 연출) 패스 · 테스트 103/103 (EditMode 90 + PlayMode 13) · 200체 @193fps
 
 ---
 
@@ -126,10 +126,15 @@ Cinemachine 쿼터뷰. 플레이어 추종(Follow) + 항상 바라봄(HardLookAt
 - **공통:** 예측 사격(leadFactor 0.6) · LOS 차단(`ObstacleField.Blocks`) · 투사체 벽 충돌(거리 < 0.2 소멸).
 - **VFX(무기별 구분):** 투사체=색+트레일, 오라=반투명 디스크, 관통=빔 플래시(LineRenderer), 궤도=회전 발광 오브+트레일. 색·크기는 `WeaponDefinition`(Color/VfxScale), 진화형은 강화. `WeaponVfx`(Player)가 오라/궤도 지속 비주얼을 BuildState에 동기화(진화/제거 시 정리). 머티리얼 `VfxAdditive`(가산)/`VfxDisc`(반투명). (사운드는 미구현)
 
-## 9. 전투·사망
+## 9. 전투·사망·손맛(피격 연출)
 
 - 데미지 단일 진입점 `DamageSystem`. 적/플레이어 공용 `Health`(`IDamageable`).
 - 적 사망 → **사망 VFX**(VFX Graph `DeathPoof`, 풀링) + `EnemyDiedEvent` 발행 → 젬 스폰.
+- **적 피격:** 흰색 플래시 + 스케일 펀치(`Enemy`가 per-instance MPB로, 인스턴싱 유지). 감쇠는 `EnemySimulation` 중앙 루프에서 틱(적별 Update 0개). 데미지 적용 시 `EnemyHitEvent`(실제 적용량·치명 여부) 발행.
+- **데미지 숫자:** 피격 위치에 떠오르며 페이드하는 숫자(`DamageNumberLayer`, HUD UI Toolkit 패널 재사용·풀링·카메라 투영). 치명타는 주황·크게.
+- **임팩트 VFX:** 비치명타 피격 지점에 가산 발광 스파크(`ImpactVfx`, 자체 풀·프레임당 캡). 치명타는 사망 VFX가 담당.
+- **플레이어 피격:** 화면 가장자리 붉은 비네트(HUD). 강도는 `DangerMeter`(지수 감쇠)로 피격량에 비례 수렴 — 가벼운 접촉은 옅게, 다수에 둘러싸이면 진하게.
+- 순수 로직(`HitReactState`/`DangerMeter`/`FloatingTextAnim`, `Core.Feedback`)은 MonoBehaviour와 분리해 단위 테스트.
 
 ## 10. 진행 (경험치·레벨·업그레이드)
 
@@ -162,7 +167,8 @@ Cinemachine 쿼터뷰. 플레이어 추종(Follow) + 항상 바라봄(HardLookAt
 - **성능:** 동시 적 210체 @ 5.2ms(193fps)
 - 네비게이션: 커스텀 **Flow Field**(NavMesh/A* 미사용, 선호속도 소스) + **PBD 군중 솔버**(`CrowdSolver`, 적-적/적-벽 통합 제약) + 해석적 벽 충돌(`ObstacleField`)
 - 빌드/무기(M8): `WeaponInstance`(정의×레벨×패시브 수정자) · `BuildState`/`UpgradePool`(동적 후보·진화) · `WeaponController` 인벤토리(5 fireMode 분기: Nearest/Spread/Aura/PierceLine/Orbital)
-- 자동화 테스트 90개(EditMode 77 + PlayMode 13)
+- 손맛(피격 연출): 적 플래시+펀치 · 데미지 숫자 · 임팩트 스파크 · 플레이어 비네트(순수 로직 `Core.Feedback`)
+- 자동화 테스트 103개(EditMode 90 + PlayMode 13)
 
 ## 14. 현재 한계 / 미구현 (논의 거리)
 
