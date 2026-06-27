@@ -18,6 +18,8 @@ MonoBehaviour:
   _icon: {fileID: 0}
   _fireMode: 3
   _maxLevel: 1
+  _color: {r: 1, g: 0.85, b: 0.2, a: 1}
+  _vfxScale: 1.5
   _fireInterval: 0.7
   _damage: 18
   _projectileSpeed: 14

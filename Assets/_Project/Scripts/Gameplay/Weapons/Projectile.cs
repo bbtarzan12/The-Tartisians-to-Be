@@ -15,19 +15,39 @@ namespace Tartisians.Gameplay.Weapons
     public sealed class Projectile : MonoBehaviour, IPoolable
     {
         const float Radius = 0.2f; // 벽 충돌 판정 반경
+        static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
 
         Rigidbody _rb;
         PrefabPool<Projectile> _pool;
         ObstacleField _obstacles;
+        Renderer _renderer;
+        TrailRenderer _trail;
+        MaterialPropertyBlock _mpb;
+        Vector3 _baseScale = Vector3.one;
+        float _baseTrailWidth;
         Vector3 _direction;
         float _speed;
         float _damage;
         float _life;
         int _pierceLeft;
 
-        void Awake() => _rb = GetComponent<Rigidbody>();
+        void Awake()
+        {
+            _rb = GetComponent<Rigidbody>();
+            _renderer = GetComponentInChildren<Renderer>();
+            _trail = GetComponentInChildren<TrailRenderer>();
+            _mpb = new MaterialPropertyBlock();
+            _baseScale = transform.localScale;
+            if (_trail != null)
+            {
+                _baseTrailWidth = _trail.widthMultiplier;
+            }
+        }
 
         public void Launch(Vector3 direction, float speed, float damage, int pierce, float lifetime, PrefabPool<Projectile> pool)
+            => Launch(direction, speed, damage, pierce, lifetime, pool, Color.white, 1f);
+
+        public void Launch(Vector3 direction, float speed, float damage, int pierce, float lifetime, PrefabPool<Projectile> pool, Color color, float scale)
         {
             _direction = direction;
             _pool = pool;
@@ -36,6 +56,25 @@ namespace Tartisians.Gameplay.Weapons
             _pierceLeft = pierce;
             _life = lifetime;
             transform.forward = direction;
+            transform.localScale = _baseScale * scale;
+
+            // 무기별 색(인스턴싱 깨지 않게 MaterialPropertyBlock).
+            if (_renderer != null)
+            {
+                _renderer.GetPropertyBlock(_mpb);
+                _mpb.SetColor(BaseColorId, color);
+                _renderer.SetPropertyBlock(_mpb);
+            }
+
+            // 트레일: 풀 재사용 시 이전 위치 잔상 제거 + 색/폭 설정.
+            if (_trail != null)
+            {
+                _trail.Clear();
+                Color tail = color; tail.a = 0f;
+                _trail.startColor = color;
+                _trail.endColor = tail;
+                _trail.widthMultiplier = _baseTrailWidth * scale;
+            }
         }
 
         void FixedUpdate()

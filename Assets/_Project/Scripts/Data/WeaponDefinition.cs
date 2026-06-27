@@ -16,6 +16,8 @@ namespace Tartisians.Data
         [SerializeField] Sprite _icon;
         [SerializeField] WeaponFireMode _fireMode = WeaponFireMode.NearestProjectile;
         [SerializeField] int _maxLevel = 8;
+        [SerializeField] Color _color = Color.white; // VFX 색(투사체/오라/궤도/빔 공통)
+        [SerializeField] float _vfxScale = 1f;       // VFX 크기 배율(진화형은 크게)
 
         [Header("기본 스탯 (Lv1)")]
         [SerializeField] float _fireInterval = 0.6f;
@@ -45,6 +47,8 @@ namespace Tartisians.Data
         public Sprite Icon => _icon;
         public WeaponFireMode FireMode => _fireMode;
         public int MaxLevel => Mathf.Max(1, _maxLevel);
+        public Color Color => _color;
+        public float VfxScale => Mathf.Max(0.05f, _vfxScale);
 
         public float FireInterval => Mathf.Max(0.02f, _fireInterval);
         public float Damage => _damage;

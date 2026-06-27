@@ -24,6 +24,7 @@ namespace Tartisians.Gameplay.Weapons
         EnemyRegistry _registry;
         BuildState _build;
         ObstacleField _obstacles;
+        WeaponVfx _vfx;
         readonly List<Enemy> _candidates = new();
 
         void Awake()
@@ -35,6 +36,7 @@ namespace Tartisians.Gameplay.Weapons
 
             ServiceLocator.TryGet(out _registry);
             ServiceLocator.TryGet(out _build);
+            _vfx = GetComponent<WeaponVfx>();
         }
 
         void Update()
@@ -76,7 +78,7 @@ namespace Tartisians.Gameplay.Weapons
                 while (w.FireTimer >= eff.FireInterval && safety-- > 0)
                 {
                     w.FireTimer -= eff.FireInterval;
-                    Fire(w.Def.FireMode, eff);
+                    Fire(w.Def, eff);
                 }
 
                 if (w.FireTimer > eff.FireInterval)
@@ -86,20 +88,20 @@ namespace Tartisians.Gameplay.Weapons
             }
         }
 
-        void Fire(WeaponFireMode mode, in EffectiveWeaponStats eff)
+        void Fire(WeaponDefinition def, in EffectiveWeaponStats eff)
         {
-            switch (mode)
+            switch (def.FireMode)
             {
-                case WeaponFireMode.SpreadProjectile: FireSpread(eff); break;
+                case WeaponFireMode.SpreadProjectile: FireSpread(def, eff); break;
                 case WeaponFireMode.AuraField: FireAura(eff); break;
-                case WeaponFireMode.PierceLine: FireLance(eff); break;
+                case WeaponFireMode.PierceLine: FireLance(def, eff); break;
                 case WeaponFireMode.Orbital: FireOrbit(eff); break;
-                default: FireNearest(eff); break;
+                default: FireNearest(def, eff); break;
             }
         }
 
         // 사거리 내 시야 확보된 최근접 적 eff.Amount명에게 각각 1발.
-        void FireNearest(in EffectiveWeaponStats eff)
+        void FireNearest(WeaponDefinition def, in EffectiveWeaponStats eff)
         {
             if (_registry == null || _registry.Count == 0)
             {
@@ -126,12 +128,12 @@ namespace Tartisians.Gameplay.Weapons
                 }
 
                 (_candidates[s], _candidates[best]) = (_candidates[best], _candidates[s]);
-                LaunchAt(_candidates[s], eff, self);
+                LaunchAt(_candidates[s], eff, self, def);
             }
         }
 
         // 최근접 적 방향을 중심으로 eff.Amount발을 eff.Area(부채각, 도) 범위로 분산.
-        void FireSpread(in EffectiveWeaponStats eff)
+        void FireSpread(WeaponDefinition def, in EffectiveWeaponStats eff)
         {
             Vector3 self = transform.position;
             Enemy nearest = NearestVisible(self, eff.Range);
@@ -162,7 +164,7 @@ namespace Tartisians.Gameplay.Weapons
                 spawn.y = spawnY;
                 Projectile p = _pool.Get();
                 p.transform.position = spawn;
-                p.Launch(d, eff.ProjectileSpeed, eff.Damage, eff.Pierce, eff.Lifetime, _pool);
+                p.Launch(d, eff.ProjectileSpeed, eff.Damage, eff.Pierce, eff.Lifetime, _pool, def.Color, def.VfxScale);
             }
         }
 
@@ -195,7 +197,7 @@ namespace Tartisians.Gameplay.Weapons
         }
 
         // 최근접 적 방향으로 길이 eff.Area·반폭 고정인 관통 라인 안의 모든 적에게 즉시 데미지.
-        void FireLance(in EffectiveWeaponStats eff)
+        void FireLance(WeaponDefinition def, in EffectiveWeaponStats eff)
         {
             if (_registry == null)
             {
@@ -219,6 +221,13 @@ namespace Tartisians.Gameplay.Weapons
             dir.Normalize();
             float length = Mathf.Max(1f, eff.Area);
             const float halfWidth = 0.9f;
+
+            // 빔 플래시(VFX).
+            if (_vfx != null)
+            {
+                _vfx.FlashLance(self, dir, length, def.Color);
+            }
+
             IReadOnlyList<Enemy> active = _registry.Active;
             for (int i = 0; i < active.Count; i++)
             {
@@ -272,7 +281,7 @@ namespace Tartisians.Gameplay.Weapons
             }
         }
 
-        void LaunchAt(Enemy target, in EffectiveWeaponStats eff, Vector3 self)
+        void LaunchAt(Enemy target, in EffectiveWeaponStats eff, Vector3 self, WeaponDefinition def)
         {
             Vector3 aim = Targeting.PredictAimPoint(self, target.Position, target.Velocity, eff.ProjectileSpeed, _leadFactor);
             Vector3 dir = aim - self;
@@ -287,7 +296,7 @@ namespace Tartisians.Gameplay.Weapons
             spawn.y = target.Position.y;
             Projectile p = _pool.Get();
             p.transform.position = spawn;
-            p.Launch(dir, eff.ProjectileSpeed, eff.Damage, eff.Pierce, eff.Lifetime, _pool);
+            p.Launch(dir, eff.ProjectileSpeed, eff.Damage, eff.Pierce, eff.Lifetime, _pool, def.Color, def.VfxScale);
         }
 
         void GatherVisible(Vector3 self, float range)

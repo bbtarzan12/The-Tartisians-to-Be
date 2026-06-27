@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 2572547533128202434}
   - component: {fileID: 168617352487354069}
   - component: {fileID: 776703250304901391}
+  - component: {fileID: 7563044297723301997}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -128,6 +129,20 @@ MonoBehaviour:
   _inputSource: {fileID: 0}
   _arenaHalfExtent: {x: 19, y: 19}
   _collisionRadius: 0.5
+--- !u!114 &7563044297723301997
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6744641964487131375}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a750fd68b1e17134b9cea332b97250d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Gameplay::Tartisians.Gameplay.Weapons.WeaponVfx
+  _discMat: {fileID: 2100000, guid: 2f40d90fce2dc894f8fb74a8194fe31f, type: 2}
+  _additiveMat: {fileID: 2100000, guid: 0e6460aee0b6789468301917cf30eacd, type: 2}
 --- !u!1001 &7406416404848739511
 PrefabInstance:
   m_ObjectHideFlags: 0
