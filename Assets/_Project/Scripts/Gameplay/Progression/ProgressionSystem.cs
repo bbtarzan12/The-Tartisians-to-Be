@@ -107,39 +107,58 @@ namespace Tartisians.Gameplay.Progression
                 case OptionKind.NewWeapon:
                 {
                     WeaponDefinition def = d.Weapon;
-                    return new UpgradeOption(def.DisplayName, "새 무기", () => _build.AddWeapon(def));
+                    return new UpgradeOption(def.DisplayName, "새 무기 획득", () => _build.AddWeapon(def),
+                        d.Kind, def.Color, 1, "무기 · 신규", true);
                 }
                 case OptionKind.LevelWeapon:
                 {
                     WeaponInstance target = d.WeaponTarget;
-                    return new UpgradeOption(d.Weapon.DisplayName, $"Lv {d.ResultLevel}", () => target.LevelUp());
+                    return new UpgradeOption(d.Weapon.DisplayName, "무기 강화", () => target.LevelUp(),
+                        d.Kind, d.Weapon.Color, d.ResultLevel, "무기 · Lv 업", true);
                 }
                 case OptionKind.NewPassive:
                 {
                     PassiveItemDefinition def = d.Passive;
-                    return new UpgradeOption(def.DisplayName, "새 패시브", () =>
+                    return new UpgradeOption(def.DisplayName, PassiveDetail(def), () =>
                     {
                         _build.AddPassive(def);
                         RecomputePlayerStats();
-                    });
+                    }, d.Kind, ProgressionPalette.PassiveColor(def.Kind), 1, "패시브 · 신규", false);
                 }
                 case OptionKind.LevelPassive:
                 {
                     PassiveItemDefinition def = d.Passive;
-                    return new UpgradeOption(def.DisplayName, $"Lv {d.ResultLevel}", () =>
+                    return new UpgradeOption(def.DisplayName, PassiveDetail(def), () =>
                     {
                         _build.FindPassive(def)?.LevelUp();
                         RecomputePlayerStats();
-                    });
+                    }, d.Kind, ProgressionPalette.PassiveColor(def.Kind), d.ResultLevel, "패시브 · Lv 업", false);
                 }
                 case OptionKind.Evolution:
                 {
                     WeaponInstance target = d.WeaponTarget;
-                    return new UpgradeOption($"진화: {d.Weapon.DisplayName}", "진화", () => _build.Evolve(target));
+                    return new UpgradeOption(d.Weapon.DisplayName, "무기 진화!", () => _build.Evolve(target),
+                        d.Kind, d.Weapon.Color, 1, "진화", true);
                 }
             }
 
-            return new UpgradeOption("?", "", null);
+            return new UpgradeOption("?", "", null, OptionKind.NewWeapon, Color.gray, 0, "", false);
+        }
+
+        static string PassiveDetail(PassiveItemDefinition def)
+        {
+            switch (def.Kind)
+            {
+                case PassiveKind.Might: return "데미지 증가";
+                case PassiveKind.Cooldown: return "쿨다운 감소";
+                case PassiveKind.Area: return "범위 증가";
+                case PassiveKind.Amount: return "투사체 증가";
+                case PassiveKind.ProjectileSpeed: return "탄속 증가";
+                case PassiveKind.Magnet: return "획득 범위 증가";
+                case PassiveKind.MaxHealth: return "체력 증가";
+                case PassiveKind.MoveSpeed: return "이속 증가";
+                default: return "";
+            }
         }
 
         // 패시브로 인한 플레이어 스탯(이동/체력/자석)을 기본값 위에 재계산해 RunStats에 반영.

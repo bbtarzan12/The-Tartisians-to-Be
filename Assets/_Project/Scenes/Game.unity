@@ -3658,6 +3658,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3d24bdaf38f0ac9458a14935858b64d1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game.UI::Tartisians.UI.HudController
+  _styles: {fileID: 7433441132597879392, guid: 8ef6ab642ab87504ea2373e33c87cdc8, type: 3}
 --- !u!114 &1342818891
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -1,0 +1,181 @@
+/* The Tartisians to Be — HUD 스타일 (UI Toolkit USS). 다크 + 금색 강조 팔레트.
+   메인 HUD는 카드 대비 0.8× 크기, 카드(레벨업)는 크게·불투명. */
+
+.hud { flex-grow: 1; }
+
+/* ── 피격 비네트 (가장자리 붉은 띠, 알파는 코드가 구동) ── */
+.vignette {
+    position: absolute;
+    left: 0; right: 0; top: 0; bottom: 0;
+    border-left-width: 26px; border-right-width: 26px;
+    border-top-width: 26px; border-bottom-width: 26px;
+    border-left-color: rgba(217, 13, 13, 0.9);
+    border-right-color: rgba(217, 13, 13, 0.9);
+    border-top-color: rgba(217, 13, 13, 0.9);
+    border-bottom-color: rgba(217, 13, 13, 0.9);
+    border-radius: 16px;
+    opacity: 0;
+}
+
+/* ── 상단: 레벨 + XP + 스탯 (0.8× 축소) ── */
+.topbar {
+    position: absolute; top: 0; left: 0; right: 0;
+    padding-top: 6px; padding-left: 8px; padding-right: 8px;
+}
+.xprow { flex-direction: row; align-items: center; }
+.lvbadge {
+    min-width: 43px; height: 21px;
+    padding-left: 6px; padding-right: 6px;
+    border-radius: 11px;
+    background-color: rgb(23, 29, 39);
+    border-width: 1px; border-color: rgb(255, 207, 82);
+    color: rgb(255, 207, 82); -unity-font-style: bold; font-size: 10px;
+    -unity-text-align: middle-center;
+    margin-right: 6px;
+}
+
+.bar {
+    height: 16px; border-radius: 8px;
+    background-color: rgb(13, 16, 22);
+    border-width: 1px; border-color: rgb(44, 53, 67);
+    flex-grow: 1; overflow: hidden;
+    justify-content: center;
+}
+.bar-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 8px; }
+/* 숫자는 바 안 중앙. 바 높이가 글자보다 충분히 커서 잘리지 않는다. */
+.bar-text {
+    position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+    -unity-text-align: middle-center; font-size: 9px; -unity-font-style: bold;
+    color: rgb(235, 240, 248);
+    white-space: nowrap;
+}
+.xp-fill { background-color: rgb(255, 211, 77); }
+
+.statsrow { flex-direction: row; justify-content: space-between; align-items: center; margin-top: 5px; }
+.chip {
+    flex-direction: row; align-items: center;
+    -unity-font-style: bold; font-size: 11px; color: rgb(238, 242, 247);
+    background-color: rgba(17, 22, 30, 0.87);
+    padding-left: 7px; padding-right: 9px; padding-top: 3px; padding-bottom: 3px;
+    border-radius: 7px; border-width: 1px; border-color: rgb(44, 53, 67);
+}
+.chip-timer { font-size: 16px; }
+.chip-pip { width: 7px; height: 7px; border-radius: 4px; margin-right: 5px; }
+
+/* ── 하단: 보유현황 + HP (0.8× 축소) ── */
+.bottom {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    padding-left: 8px; padding-right: 8px; padding-bottom: 8px;
+}
+.loadout { flex-direction: row; align-items: center; margin-bottom: 6px; }
+.hprow { flex-direction: row; align-items: center; }
+.heart { color: rgb(230, 68, 59); font-size: 13px; -unity-font-style: bold; margin-right: 6px; }
+.hp { height: 18px; }
+.hp-text { color: rgb(255, 255, 255); font-size: 9px; }
+
+.slot {
+    width: 27px; height: 27px; border-radius: 7px;
+    background-color: rgb(17, 22, 30);
+    border-width: 1px; border-color: rgb(44, 53, 67);
+    align-items: center; justify-content: center;
+    margin-right: 5px;
+}
+.pip { width: 14px; height: 14px; border-radius: 4px; }
+.pip-round { border-radius: 7px; }
+/* 무기 슬롯 발동 쿨다운(방사형). 슬롯 둥근 모서리에 클립. */
+.slot-cd { position: absolute; left: 0; top: 0; right: 0; bottom: 0; border-radius: 7px; overflow: hidden; }
+.slot-lv {
+    position: absolute; right: -3px; bottom: -4px;
+    font-size: 7px; -unity-font-style: bold;
+    background-color: rgb(13, 16, 22);
+    border-width: 1px; border-color: rgb(44, 53, 67); border-radius: 5px;
+    padding-left: 2px; padding-right: 2px;
+    color: rgb(255, 207, 82);
+}
+.sep { width: 1px; height: 19px; background-color: rgb(44, 53, 67); margin-left: 2px; margin-right: 5px; }
+
+/* ── 오버레이 (레벨업 / 결과) — 딤 강화 ── */
+.overlay {
+    position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+    background-color: rgba(6, 9, 14, 0.92);
+    align-items: center; justify-content: center;
+    display: none;
+}
+.otitle { font-size: 20px; -unity-font-style: bold; color: rgb(238, 242, 247); margin-bottom: 14px; }
+
+/* ── 레벨업 카드 (크게 유지 · 불투명) ── */
+.cards { flex-direction: row; justify-content: center; align-items: flex-start; }
+.card {
+    width: 122px;
+    background-color: rgb(42, 50, 64);
+    border-left-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-top-width: 3px;
+    border-color: rgb(58, 69, 86);
+    border-radius: 12px;
+    padding-left: 9px; padding-right: 9px; padding-top: 12px; padding-bottom: 12px;
+    align-items: center;
+    margin-left: 5px; margin-right: 5px;
+    transition-property: translate; transition-duration: 0.12s;
+}
+.card:hover { translate: 0 -4px; }
+.card-evo {
+    border-left-color: rgb(255, 207, 82); border-right-color: rgb(255, 207, 82);
+    border-top-color: rgb(255, 207, 82); border-bottom-color: rgb(255, 207, 82);
+    background-color: rgb(46, 39, 22);
+}
+.ribbon {
+    font-size: 9px; -unity-font-style: bold; color: rgb(26, 18, 5);
+    background-color: rgb(255, 207, 82);
+    padding-left: 8px; padding-right: 8px; padding-top: 1px; padding-bottom: 1px;
+    border-radius: 8px; margin-bottom: 6px;
+}
+.kind { font-size: 10px; color: rgb(154, 167, 182); margin-bottom: 6px; }
+.card-icon {
+    width: 46px; height: 46px; border-radius: 12px;
+    background-color: rgb(20, 25, 33);
+    border-width: 1px; border-color: rgb(44, 53, 67);
+    align-items: center; justify-content: center;
+    margin-bottom: 8px;
+}
+.card-pip { width: 26px; height: 26px; border-radius: 7px; }
+.card-pip-round { border-radius: 13px; }
+/* 이름·설명은 항상 한 줄(줄바꿈 금지). 문구는 짧게 유지해 잘리지 않고 온전히 들어간다. */
+.nm {
+    width: 100%;
+    -unity-font-style: bold; font-size: 13px; color: rgb(238, 242, 247);
+    -unity-text-align: middle-center; margin-bottom: 4px;
+    white-space: nowrap;
+}
+.lvtag { font-size: 11px; -unity-font-style: bold; margin-bottom: 6px; }
+.lvtag-up { color: rgb(102, 255, 115); }
+.lvtag-evo { color: rgb(255, 207, 82); }
+.lvtag-new { color: rgb(154, 167, 182); }
+.desc {
+    width: 100%;
+    font-size: 10px; color: rgb(154, 167, 182); -unity-text-align: middle-center;
+    white-space: nowrap;
+}
+
+/* ── 결과 화면 ── */
+.big { font-size: 30px; -unity-font-style: bold; margin-bottom: 14px; }
+.big-win { color: rgb(255, 207, 82); }
+.big-lose { color: rgb(230, 68, 59); }
+.summary {
+    width: 280px;
+    background-color: rgb(20, 26, 35);
+    border-width: 1px; border-color: rgb(44, 53, 67); border-radius: 12px;
+    padding-left: 16px; padding-right: 16px; padding-top: 14px; padding-bottom: 14px;
+    margin-bottom: 14px;
+}
+.srow { flex-direction: row; justify-content: space-between; margin-bottom: 8px; }
+.srow-k { color: rgb(154, 167, 182); font-size: 13px; }
+.srow-v { -unity-font-style: bold; font-size: 13px; color: rgb(238, 242, 247); }
+.build-lab { font-size: 10px; color: rgb(154, 167, 182); margin-top: 4px; margin-bottom: 6px; }
+.build-icons { flex-direction: row; flex-wrap: wrap; }
+
+.btn {
+    padding-left: 22px; padding-right: 22px; padding-top: 9px; padding-bottom: 9px;
+    border-radius: 9px; -unity-font-style: bold; font-size: 13px;
+    background-color: rgb(255, 207, 82); color: rgb(36, 26, 5);
+    border-width: 1px; border-color: rgb(255, 207, 82);
+}
+.btn:hover { background-color: rgb(255, 219, 120); }
