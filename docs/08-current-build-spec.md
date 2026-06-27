@@ -1,7 +1,7 @@
 # 08. 현재 빌드 기획서 (As-Built)
 
 > 지금 **실제로 구현·동작하는** 게임을 역으로 정리한 문서다. 수치는 코드/에셋의 현재 값이며, 밸런싱·확장 논의의 기준점으로 쓴다. (앞을 내다보는 계획은 `05-roadmap.md`, 이 문서는 "지금 상태")
-> 기준 커밋: `dd2a060` · 테스트 51/51 · 200체 @193fps
+> 기준 커밋: `fad6cee` · 테스트 70/70 · 200체 @193fps
 
 ---
 
@@ -39,7 +39,10 @@
 | 자석 범위(pickupRadius) | 2.5 | 젬 흡수 반경 |
 | 이동 방식 | Rigidbody(키네마틱) MovePosition | XZ 평면, 대각 정규화 |
 | 이동 경계 | 아레나 ±59 clamp + 장애물 SDF 밀어내기 | 둘레 벽 + 내부 장애물 비침투(적과 동일 `ObstacleField`) |
-| 비주얼 | 캡슐 플레이스홀더(흰색) | 아트 미정 |
+| 비주얼 | **Crystal 스킨드 캐릭터** + Idle/Walk 애니메이션 | 아래 캐릭터/애니메이션 참고 |
+
+- **캐릭터/애니메이션(Mecanim):** `Player` 하위 비주얼에 **Crystal 스킨드 메시**(Generic 리그 5본) + Animator. `Crystal.controller`의 **1D 블렌드 트리(`Speed`)** 가 Idle↔Walk를 섞고, `CharacterVisual`이 부모 이동량으로 `Speed`(0~1)를 구동 + 진행방향으로 회전(이동 로직과 분리된 표현 셸 → 입력 주체가 누구든 동일 동작). 루트모션 off(이동은 코드 구동).
+  - **Generic 멀티-FBX 정석:** 메시 FBX가 아바타(`CrystalAvatar`) 생성 → 애니 FBX(Idle/Walk)는 **Copy From Other Avatar → CrystalAvatar**로 아바타를 공유해야 클립이 메시에 정확히 바인딩(미통일 시 T포즈). 텍스처 8K→2K(Base sRGB·Normal), 머티리얼 `Crystal.mat`(URP/Lit).
 
 ## 5. 카메라
 
@@ -139,7 +142,7 @@ Cinemachine 쿼터뷰. 플레이어 추종(Follow) + 항상 바라봄(HardLookAt
 ## 13. 기술 스택 (요약)
 
 - Unity 6000.5.1f1 / URP **Deferred+** + GPU Resident Drawer + Occlusion Culling
-- New Input System · Cinemachine · VFX Graph · UI Toolkit · Awaitable
+- New Input System · Cinemachine · VFX Graph · UI Toolkit · Awaitable · Mecanim(Animator, Generic 리그)
 - 어셈블리 레이어: Core / Data / Systems / Gameplay / UI / Tests
 - 패턴: 타입 EventBus · ServiceLocator · 상태기계 · Object Pooling(적·투사체·젬·VFX 전부)
 - **성능:** 동시 적 210체 @ 5.2ms(193fps)
@@ -148,7 +151,7 @@ Cinemachine 쿼터뷰. 플레이어 추종(Follow) + 항상 바라봄(HardLookAt
 
 ## 14. 현재 한계 / 미구현 (논의 거리)
 
-1. **아트 없음** — 플레이어·적 모두 프리미티브 캡슐. 애니메이션 없음(셰이더 모션/VAT 예정)
+1. **아트 일부 적용** — **플레이어 = Crystal 캐릭터 + Idle/Walk 애니메이션(Mecanim) 적용 완료.** 적은 아직 프리미티브 캡슐(수천 마리 크라우드 애니는 Animator 비용상 VAT+GPU 인스턴싱 예정). Leaf 캐릭터는 엘리트/보스용으로 보류.
 2. **무기 1종** — MagicBolt만. 장판·근접·다중 투사체 등 미구현
 3. **웨이브 단조** — 시간대별 난도 곡선·보스 없음
 4. **카드 UI 기능 위주** — 아이콘·등급·보유현황·리롤 없음(회색 버튼)
