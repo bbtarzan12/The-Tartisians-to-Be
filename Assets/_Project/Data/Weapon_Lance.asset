@@ -38,9 +38,6 @@ MonoBehaviour:
   - Kind: 5
     MaxLevel: 5
     Step: 2
-  - Kind: 4
-    MaxLevel: 3
-    Step: 1
   - Kind: 2
     MaxLevel: 5
     Step: 0.12
