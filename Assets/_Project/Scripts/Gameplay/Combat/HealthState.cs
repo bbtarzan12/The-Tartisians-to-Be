@@ -41,5 +41,19 @@ namespace Tartisians.Gameplay.Combat
 
             Current = Mathf.Min(Max, Current + amount);
         }
+
+        /// <summary>최대 체력을 새 값으로 바꾸되 현재 체력은 유지(상한 클램프). 증가분만큼 회복 옵션.</summary>
+        public void SetMax(float max, bool healByDelta)
+        {
+            float newMax = Mathf.Max(1f, max);
+            float delta = newMax - Max;
+            Max = newMax;
+            if (healByDelta && delta > 0f)
+            {
+                Current += delta;
+            }
+
+            Current = Mathf.Min(Current, Max);
+        }
     }
 }

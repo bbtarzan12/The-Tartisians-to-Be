@@ -26,6 +26,7 @@ namespace Tartisians.Gameplay.Progression
         ExperienceState _xp;
         RunStats _stats;
         BuildState _build;
+        Combat.Health _playerHealth;
         EventBinding<XpCollectedEvent> _xpBinding;
         readonly List<OptionDescriptor> _descBuffer = new();
         readonly List<int> _pickBuffer = new();
@@ -48,6 +49,13 @@ namespace Tartisians.Gameplay.Progression
 
             ServiceLocator.Register(_stats);
             ServiceLocator.Register(_build);
+
+            GameObject p = GameObject.FindGameObjectWithTag("Player");
+            if (p != null)
+            {
+                p.TryGetComponent(out _playerHealth);
+            }
+
             RecomputePlayerStats();
         }
 
@@ -104,17 +112,19 @@ namespace Tartisians.Gameplay.Progression
         {
             switch (d.Kind)
             {
+                case OptionKind.UpgradeTrait:
+                {
+                    WeaponInstance target = d.WeaponTarget;
+                    TraitKind trait = d.Trait;
+                    // 카드: 상단 라벨=무기명, 제목=특성명, 설명=효과, 레벨태그=특성 다음 단계
+                    return new UpgradeOption(TraitName(trait), TraitDetail(trait), () => target.UpgradeTrait(trait),
+                        d.Kind, d.Weapon.Color, d.ResultLevel, d.Weapon.DisplayName, true);
+                }
                 case OptionKind.NewWeapon:
                 {
                     WeaponDefinition def = d.Weapon;
                     return new UpgradeOption(def.DisplayName, "새 무기 획득", () => _build.AddWeapon(def),
                         d.Kind, def.Color, 1, "무기 · 신규", true);
-                }
-                case OptionKind.LevelWeapon:
-                {
-                    WeaponInstance target = d.WeaponTarget;
-                    return new UpgradeOption(d.Weapon.DisplayName, "무기 강화", () => target.LevelUp(),
-                        d.Kind, d.Weapon.Color, d.ResultLevel, "무기 · Lv 업", true);
                 }
                 case OptionKind.NewPassive:
                 {
@@ -123,7 +133,7 @@ namespace Tartisians.Gameplay.Progression
                     {
                         _build.AddPassive(def);
                         RecomputePlayerStats();
-                    }, d.Kind, ProgressionPalette.PassiveColor(def.Kind), 1, "패시브 · 신규", false);
+                    }, d.Kind, ProgressionPalette.PassiveColor(def.Kind), 1, "플레이어 · 신규", false);
                 }
                 case OptionKind.LevelPassive:
                 {
@@ -132,28 +142,45 @@ namespace Tartisians.Gameplay.Progression
                     {
                         _build.FindPassive(def)?.LevelUp();
                         RecomputePlayerStats();
-                    }, d.Kind, ProgressionPalette.PassiveColor(def.Kind), d.ResultLevel, "패시브 · Lv 업", false);
-                }
-                case OptionKind.Evolution:
-                {
-                    WeaponInstance target = d.WeaponTarget;
-                    return new UpgradeOption(d.Weapon.DisplayName, "무기 진화!", () => _build.Evolve(target),
-                        d.Kind, d.Weapon.Color, 1, "진화", true);
+                    }, d.Kind, ProgressionPalette.PassiveColor(def.Kind), d.ResultLevel, "플레이어 · Lv 업", false);
                 }
             }
 
             return new UpgradeOption("?", "", null, OptionKind.NewWeapon, Color.gray, 0, "", false);
         }
 
+        static string TraitName(TraitKind kind)
+        {
+            switch (kind)
+            {
+                case TraitKind.Damage: return "공격력";
+                case TraitKind.Amount: return "다발";
+                case TraitKind.Cooldown: return "쿨다운";
+                case TraitKind.ProjectileSpeed: return "탄속";
+                case TraitKind.Pierce: return "관통";
+                case TraitKind.Area: return "범위";
+                default: return "";
+            }
+        }
+
+        static string TraitDetail(TraitKind kind)
+        {
+            switch (kind)
+            {
+                case TraitKind.Damage: return "공격력 증가";
+                case TraitKind.Amount: return "발사 수 +1";
+                case TraitKind.Cooldown: return "재사용 대기 감소";
+                case TraitKind.ProjectileSpeed: return "투사체 속도 증가";
+                case TraitKind.Pierce: return "관통 +1";
+                case TraitKind.Area: return "효과 범위 증가";
+                default: return "";
+            }
+        }
+
         static string PassiveDetail(PassiveItemDefinition def)
         {
             switch (def.Kind)
             {
-                case PassiveKind.Might: return "데미지 증가";
-                case PassiveKind.Cooldown: return "쿨다운 감소";
-                case PassiveKind.Area: return "범위 증가";
-                case PassiveKind.Amount: return "투사체 증가";
-                case PassiveKind.ProjectileSpeed: return "탄속 증가";
                 case PassiveKind.Magnet: return "획득 범위 증가";
                 case PassiveKind.MaxHealth: return "체력 증가";
                 case PassiveKind.MoveSpeed: return "이속 증가";
@@ -189,6 +216,13 @@ namespace Tartisians.Gameplay.Progression
             _stats.MoveSpeed = move;
             _stats.MaxHealth = maxHp;
             _stats.PickupRadius = _player.PickupRadius * (1f + magnetPct);
+
+            // 최대 체력은 RunStats만으로는 실제 HP에 반영되지 않으므로(이동/자석과 달리
+            // PlayerController가 매 프레임 읽지 않음) 플레이어 Health에 직접 적용 — 증가분만큼 회복.
+            if (_playerHealth != null)
+            {
+                _playerHealth.SetMax(maxHp, healByDelta: true);
+            }
         }
     }
 }

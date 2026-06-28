@@ -61,5 +61,34 @@ namespace Tartisians.Tests.EditMode
             Assert.IsTrue(hp.IsDead);
             Assert.AreEqual(0f, hp.Current);
         }
+
+        [Test]
+        public void SetMax_Increase_HealsByDelta()
+        {
+            var hp = new HealthState(100f);
+            hp.TakeDamage(40f);      // current 60
+            hp.SetMax(125f, true);   // +25 → max 125, current 85
+            Assert.AreEqual(125f, hp.Max);
+            Assert.AreEqual(85f, hp.Current);
+        }
+
+        [Test]
+        public void SetMax_Increase_NoHeal_KeepsCurrent()
+        {
+            var hp = new HealthState(100f);
+            hp.TakeDamage(40f);      // current 60
+            hp.SetMax(125f, false);  // max 125, current 유지 60
+            Assert.AreEqual(125f, hp.Max);
+            Assert.AreEqual(60f, hp.Current);
+        }
+
+        [Test]
+        public void SetMax_Decrease_ClampsCurrent()
+        {
+            var hp = new HealthState(100f); // current 100
+            hp.SetMax(70f, true);
+            Assert.AreEqual(70f, hp.Max);
+            Assert.AreEqual(70f, hp.Current, "현재가 새 최대보다 크면 클램프.");
+        }
     }
 }

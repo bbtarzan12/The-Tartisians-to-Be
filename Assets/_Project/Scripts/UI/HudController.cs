@@ -269,7 +269,7 @@ namespace Tartisians.UI
                 WeaponInstance w = _build.Weapons[i];
                 var cd = new RadialCooldown();
                 cd.AddToClassList("slot-cd");
-                _loadout.Add(MakeSlot(w.Def.Color, w.Level, true, cd));
+                _loadout.Add(MakeSlot(w.Def.Color, w.TotalUpgrades, true, cd));
                 _cdWeapons.Add(w);
                 _cdElements.Add(cd);
             }
@@ -295,7 +295,7 @@ namespace Tartisians.UI
             h = h * 31 + _build.Passives.Count;
             for (int i = 0; i < _build.Weapons.Count; i++)
             {
-                h = h * 31 + _build.Weapons[i].Level;
+                h = h * 31 + _build.Weapons[i].TotalUpgrades;
                 h = h * 31 + _build.Weapons[i].Def.GetHashCode();
             }
 
@@ -344,11 +344,10 @@ namespace Tartisians.UI
                 return;
             }
 
-            PassiveModifiers mods = _build.ComputeModifiers();
             for (int i = 0; i < _cdWeapons.Count; i++)
             {
                 WeaponInstance w = _cdWeapons[i];
-                float interval = w.Compute(mods).FireInterval;
+                float interval = w.Compute().FireInterval;
                 float ready = interval > 0.0001f ? Mathf.Clamp01(w.FireTimer / interval) : 1f;
                 _cdElements[i].Remaining = 1f - ready;
             }
@@ -500,7 +499,7 @@ namespace Tartisians.UI
                 return "신규 획득";
             }
 
-            return $"Lv {Mathf.Max(2, u.Level)}";
+            return $"Lv {Mathf.Max(1, u.Level)}";
         }
 
         static string LevelTagClass(UpgradeOption u)
@@ -564,7 +563,7 @@ namespace Tartisians.UI
                 for (int i = 0; i < _build.Weapons.Count; i++)
                 {
                     WeaponInstance w = _build.Weapons[i];
-                    icons.Add(MakeSlot(w.Def.Color, w.Level, true));
+                    icons.Add(MakeSlot(w.Def.Color, w.TotalUpgrades, true));
                 }
 
                 if (_build.Passives.Count > 0)

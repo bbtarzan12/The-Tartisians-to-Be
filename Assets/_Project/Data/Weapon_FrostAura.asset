@@ -17,9 +17,12 @@ MonoBehaviour:
   _description: 
   _icon: {fileID: 0}
   _fireMode: 2
-  _maxLevel: 8
+  _aimMode: 0
+  _motion: 0
   _color: {r: 0.45, g: 0.8, b: 1, a: 1}
   _vfxScale: 1
+  _homingTurnRate: 360
+  _ricochetRange: 6
   _fireInterval: 0.5
   _damage: 3
   _projectileSpeed: 0
@@ -28,11 +31,15 @@ MonoBehaviour:
   _lifetime: 0
   _amount: 1
   _area: 3
-  _damagePerLevel: 1
-  _fireRateReducePerLevel: 0.05
-  _projectileSpeedPerLevel: 0
-  _piercePerLevel: 0
-  _amountPerLevel: 0
-  _areaPerLevel: 0.25
+  _traits:
+  - Kind: 0
+    MaxLevel: 5
+    Step: 1
+  - Kind: 5
+    MaxLevel: 5
+    Step: 0.6
+  - Kind: 2
+    MaxLevel: 5
+    Step: 0.12
   _evolvesInto: {fileID: 11400000, guid: bac278377723e7349ba228474ea56af5, type: 2}
   _requiredPassive: {fileID: 11400000, guid: 9c6cf872cf2602b45a0ca484a0d50d4b, type: 2}

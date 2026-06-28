@@ -53,7 +53,6 @@ namespace Tartisians.Gameplay.Weapons
                 }
             }
 
-            PassiveModifiers mods = _build.ComputeModifiers();
             Vector3 self = transform.position;
 
             _seen.Clear();
@@ -61,7 +60,7 @@ namespace Tartisians.Gameplay.Weapons
             for (int i = 0; i < weapons.Count; i++)
             {
                 WeaponInstance w = weapons[i];
-                EffectiveWeaponStats eff = w.Compute(mods);
+                EffectiveWeaponStats eff = w.Compute();
                 switch (w.Def.FireMode)
                 {
                     case WeaponFireMode.AuraField: SyncAura(w, eff, self); _seen.Add(w); break;

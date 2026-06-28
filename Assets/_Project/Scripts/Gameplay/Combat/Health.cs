@@ -52,5 +52,13 @@ namespace Tartisians.Gameplay.Combat
             _state ??= new HealthState(_maxHealth);
             _state.Heal(amount);
         }
+
+        /// <summary>최대 체력 변경(현재 체력 유지, 증가분만큼 회복). 체력 패시브 강화에 사용.</summary>
+        public void SetMax(float max, bool healByDelta = true)
+        {
+            _state ??= new HealthState(_maxHealth);
+            _maxHealth = Mathf.Max(1f, max);
+            _state.SetMax(_maxHealth, healByDelta);
+        }
     }
 }

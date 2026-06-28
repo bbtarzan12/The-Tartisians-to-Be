@@ -32,8 +32,9 @@ namespace Tartisians.Gameplay.Progression
     }
 
     /// <summary>
-    /// 한 판의 빌드(보유 무기 + 패시브)를 보관·변경하는 순수 상태. 진화 판정과 전역 수정자 집계를 담당.
-    /// MonoBehaviour가 아니므로 단위 테스트 가능. 후보 생성은 <see cref="BuildOptions"/> 참조.
+    /// 한 판의 빌드(보유 무기 + 패시브)를 보관·변경하는 순수 상태.
+    /// 무기 강화는 각 <see cref="WeaponInstance"/>의 특성별 레벨, 패시브는 플레이어 강화(이속/체력/자석).
+    /// MonoBehaviour가 아니므로 단위 테스트 가능. 후보 생성은 <see cref="UpgradePool"/> 참조.
     /// </summary>
     public sealed class BuildState
     {
@@ -122,63 +123,7 @@ namespace Tartisians.Gameplay.Progression
             return p;
         }
 
-        /// <summary>보유 패시브에서 전역 무기 수정자를 집계한다.</summary>
-        public PassiveModifiers ComputeModifiers()
-        {
-            var m = new PassiveModifiers();
-            for (int i = 0; i < Passives.Count; i++)
-            {
-                PassiveOwned p = Passives[i];
-                float v = p.Def.ValueAtLevel(p.Level);
-                switch (p.Def.Kind)
-                {
-                    case PassiveKind.Might: m.MightPct += v; break;
-                    case PassiveKind.Cooldown: m.CooldownPct += v; break;
-                    case PassiveKind.Area: m.AreaPct += v; break;
-                    case PassiveKind.ProjectileSpeed: m.ProjectileSpeedPct += v; break;
-                    case PassiveKind.Amount: m.AmountAdd += Mathf.RoundToInt(v); break;
-                    // Magnet/MaxHealth/MoveSpeed는 플레이어 스탯(여기 미포함)
-                }
-            }
-
-            return m;
-        }
-
-        /// <summary>무기가 만렙 + 진화 링크 보유 + 요구 패시브 만렙(없으면 무조건) 충족 시 true.</summary>
-        public bool CanEvolve(WeaponInstance w)
-        {
-            if (w == null || !w.Def.CanEvolve || !w.IsMaxLevel)
-            {
-                return false;
-            }
-
-            PassiveItemDefinition req = w.Def.RequiredPassive;
-            if (req == null)
-            {
-                return true;
-            }
-
-            PassiveOwned p = FindPassive(req);
-            return p != null && p.IsMaxLevel;
-        }
-
-        /// <summary>기본 무기를 진화 무기로 교체하고 새 인스턴스를 반환. 조건 미충족 시 null.</summary>
-        public WeaponInstance Evolve(WeaponInstance w)
-        {
-            if (!CanEvolve(w))
-            {
-                return null;
-            }
-
-            int idx = Weapons.IndexOf(w);
-            if (idx < 0)
-            {
-                return null;
-            }
-
-            var evolved = new WeaponInstance(w.Def.EvolvesInto);
-            Weapons[idx] = evolved;
-            return evolved;
-        }
+        // 진화(Evolve/CanEvolve)와 전역 무기 수정자(ComputeModifiers)는 제거됨 —
+        // 무기 강화는 WeaponInstance의 특성별 레벨로, 진화는 추후 재설계.
     }
 }

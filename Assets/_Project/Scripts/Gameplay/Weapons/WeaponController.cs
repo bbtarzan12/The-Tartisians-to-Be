@@ -76,13 +76,12 @@ namespace Tartisians.Gameplay.Weapons
                 ServiceLocator.TryGet(out _obstacles);
             }
 
-            PassiveModifiers mods = _build.ComputeModifiers();
             float dt = Time.deltaTime;
             List<WeaponInstance> weapons = _build.Weapons;
             for (int i = 0; i < weapons.Count; i++)
             {
                 WeaponInstance w = weapons[i];
-                EffectiveWeaponStats eff = w.Compute(mods);
+                EffectiveWeaponStats eff = w.Compute();
                 w.FireTimer += dt;
 
                 int safety = 4; // 한 프레임 다발 발사 방지

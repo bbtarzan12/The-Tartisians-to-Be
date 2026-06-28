@@ -33,6 +33,6 @@ namespace Tartisians.Gameplay.Progression
             IsWeapon = isWeapon;
         }
 
-        public bool IsEvolution => Kind == OptionKind.Evolution;
+        public bool IsEvolution => false; // 진화는 이번 설계에서 제외(추후 재도입 시 복원)
     }
 }

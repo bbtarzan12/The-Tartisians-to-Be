@@ -1,35 +1,34 @@
 using System.Collections.Generic;
+using System.Reflection;
 using NUnit.Framework;
 using Tartisians.Data;
 using Tartisians.Gameplay.Progression;
 using Tartisians.Gameplay.Weapons;
-using UnityEditor;
 using UnityEngine;
 
 namespace Tartisians.Tests.EditMode
 {
     public class BuildStateTests
     {
-        static WeaponDefinition Weapon(int maxLevel = 8, WeaponDefinition evolvesInto = null, PassiveItemDefinition requiredPassive = null)
+        static readonly BindingFlags BF = BindingFlags.Instance | BindingFlags.NonPublic;
+
+        static WeaponDefinition Weapon(params WeaponDefinition.WeaponTrait[] traits)
         {
             var w = ScriptableObject.CreateInstance<WeaponDefinition>();
-            var so = new SerializedObject(w);
-            so.FindProperty("_maxLevel").intValue = maxLevel;
-            so.FindProperty("_damage").floatValue = 5f;
-            if (evolvesInto != null) so.FindProperty("_evolvesInto").objectReferenceValue = evolvesInto;
-            if (requiredPassive != null) so.FindProperty("_requiredPassive").objectReferenceValue = requiredPassive;
-            so.ApplyModifiedPropertiesWithoutUndo();
+            typeof(WeaponDefinition).GetField("_damage", BF).SetValue(w, 5f);
+            typeof(WeaponDefinition).GetField("_traits", BF).SetValue(w, traits);
             return w;
         }
 
-        static PassiveItemDefinition Passive(PassiveKind kind = PassiveKind.Might, float perLevel = 0.1f, int maxLevel = 5)
+        static WeaponDefinition.WeaponTrait T(TraitKind kind, int max = 5, float step = 1f)
+            => new WeaponDefinition.WeaponTrait { Kind = kind, MaxLevel = max, Step = step };
+
+        static PassiveItemDefinition Passive(PassiveKind kind = PassiveKind.MoveSpeed, float perLevel = 1f, int maxLevel = 5)
         {
             var p = ScriptableObject.CreateInstance<PassiveItemDefinition>();
-            var so = new SerializedObject(p);
-            so.FindProperty("_kind").enumValueIndex = (int)kind;
-            so.FindProperty("_valuePerLevel").floatValue = perLevel;
-            so.FindProperty("_maxLevel").intValue = maxLevel;
-            so.ApplyModifiedPropertiesWithoutUndo();
+            typeof(PassiveItemDefinition).GetField("_kind", BF).SetValue(p, kind);
+            typeof(PassiveItemDefinition).GetField("_valuePerLevel", BF).SetValue(p, perLevel);
+            typeof(PassiveItemDefinition).GetField("_maxLevel", BF).SetValue(p, maxLevel);
             return p;
         }
 
@@ -46,9 +45,9 @@ namespace Tartisians.Tests.EditMode
         [Test]
         public void AddWeapon_RespectsCapAndDedup()
         {
-            var a = Weapon();
-            var b = Weapon();
-            var c = Weapon();
+            var a = Weapon(T(TraitKind.Damage));
+            var b = Weapon(T(TraitKind.Damage));
+            var c = Weapon(T(TraitKind.Damage));
             var s = new BuildState { MaxWeapons = 2 };
             Assert.IsNotNull(s.AddWeapon(a));
             Assert.AreSame(s.AddWeapon(a), s.FindWeapon(a)); // 중복 → 기존 반환
@@ -59,24 +58,10 @@ namespace Tartisians.Tests.EditMode
         }
 
         [Test]
-        public void ComputeModifiers_AggregatesPassives()
-        {
-            var might = Passive(PassiveKind.Might, 0.1f);
-            var amount = Passive(PassiveKind.Amount, 1f);
-            var s = new BuildState();
-            s.AddPassive(might);  // L1 → +0.1
-            s.AddPassive(amount); // L1 → +1
-            PassiveModifiers m = s.ComputeModifiers();
-            Assert.AreEqual(0.1f, m.MightPct, 1e-4f);
-            Assert.AreEqual(1, m.AmountAdd);
-            Object.DestroyImmediate(might); Object.DestroyImmediate(amount);
-        }
-
-        [Test]
         public void Generate_EmptyBuild_OffersNewWeaponsAndPassives()
         {
-            var w1 = Weapon();
-            var w2 = Weapon();
+            var w1 = Weapon(T(TraitKind.Damage));
+            var w2 = Weapon(T(TraitKind.Damage));
             var p1 = Passive();
             var s = new BuildState();
             var weapons = new List<WeaponDefinition> { w1, w2 };
@@ -85,66 +70,64 @@ namespace Tartisians.Tests.EditMode
             UpgradePool.Generate(s, weapons, passives, results);
             Assert.AreEqual(2, CountKind(results, OptionKind.NewWeapon));
             Assert.AreEqual(1, CountKind(results, OptionKind.NewPassive));
-            Assert.AreEqual(0, CountKind(results, OptionKind.LevelWeapon));
+            Assert.AreEqual(0, CountKind(results, OptionKind.UpgradeTrait));
             Object.DestroyImmediate(w1); Object.DestroyImmediate(w2); Object.DestroyImmediate(p1);
         }
 
         [Test]
-        public void Generate_OwnedWeapon_OffersLevelUp_NotDuplicateNew()
+        public void Generate_OwnedWeapon_OffersTraitPerSupported_NotDuplicateNew()
         {
-            var a = Weapon();
-            var b = Weapon();
+            var a = Weapon(T(TraitKind.Damage), T(TraitKind.Amount), T(TraitKind.Cooldown)); // 3 특성
+            var b = Weapon(T(TraitKind.Damage));
             var s = new BuildState();
             s.AddWeapon(a);
             var weapons = new List<WeaponDefinition> { a, b };
             var results = new List<OptionDescriptor>();
             UpgradePool.Generate(s, weapons, null, results);
-            Assert.AreEqual(1, CountKind(results, OptionKind.LevelWeapon), "보유 a는 레벨업으로");
+            Assert.AreEqual(3, CountKind(results, OptionKind.UpgradeTrait), "보유 a의 지원 특성 3개");
             Assert.AreEqual(1, CountKind(results, OptionKind.NewWeapon), "미보유 b만 새 무기");
             Object.DestroyImmediate(a); Object.DestroyImmediate(b);
         }
 
         [Test]
-        public void Generate_MaxLevelWeapon_NoLevelUp()
+        public void Generate_MaxedTrait_NotOffered()
         {
-            var a = Weapon(maxLevel: 1); // 즉시 만렙
+            var a = Weapon(T(TraitKind.Damage, max: 1)); // 1번 강화하면 만렙
             var s = new BuildState();
-            s.AddWeapon(a);
+            var w = s.AddWeapon(a);
+            w.UpgradeTrait(TraitKind.Damage);
             var results = new List<OptionDescriptor>();
             UpgradePool.Generate(s, null, null, results);
-            Assert.AreEqual(0, CountKind(results, OptionKind.LevelWeapon));
+            Assert.AreEqual(0, CountKind(results, OptionKind.UpgradeTrait));
             Object.DestroyImmediate(a);
         }
 
         [Test]
-        public void Evolution_GatedByMaxLevelAndPassive_ThenReplaces()
+        public void Generate_TraitResultLevel_IsNextLevel()
         {
-            var evo = Weapon(maxLevel: 1);
-            var req = Passive(PassiveKind.Amount, 1f, maxLevel: 3);
-            var baseW = Weapon(maxLevel: 2, evolvesInto: evo, requiredPassive: req);
+            var a = Weapon(T(TraitKind.Damage, max: 3));
             var s = new BuildState();
-            var w = s.AddWeapon(baseW);
-
-            Assert.IsFalse(s.CanEvolve(w), "만렙 아님");
-            w.LevelUp(); // L2 = max
-            Assert.IsFalse(s.CanEvolve(w), "요구 패시브 없음");
-            var p = s.AddPassive(req);
-            Assert.IsFalse(s.CanEvolve(w), "패시브 만렙 아님");
-            while (p.LevelUp()) { }
-            Assert.IsTrue(s.CanEvolve(w), "조건 충족");
-
-            // 후보에도 진화 등장
+            var w = s.AddWeapon(a);
+            w.UpgradeTrait(TraitKind.Damage); // 현재 1
             var results = new List<OptionDescriptor>();
             UpgradePool.Generate(s, null, null, results);
-            Assert.AreEqual(1, CountKind(results, OptionKind.Evolution));
+            OptionDescriptor d = results.Find(o => o.Kind == OptionKind.UpgradeTrait);
+            Assert.AreEqual(TraitKind.Damage, d.Trait);
+            Assert.AreEqual(2, d.ResultLevel, "다음 단계는 2");
+            Object.DestroyImmediate(a);
+        }
 
-            var evolved = s.Evolve(w);
-            Assert.IsNotNull(evolved);
-            Assert.AreEqual(evo, evolved.Def);
-            Assert.IsTrue(s.HasWeapon(evo));
-            Assert.IsFalse(s.HasWeapon(baseW), "기본 무기는 교체됨");
-
-            Object.DestroyImmediate(evo); Object.DestroyImmediate(req); Object.DestroyImmediate(baseW);
+        [Test]
+        public void Generate_OwnedPassive_OffersLevelUp()
+        {
+            var p = Passive(PassiveKind.MoveSpeed, 1f, maxLevel: 3);
+            var s = new BuildState();
+            s.AddPassive(p);
+            var results = new List<OptionDescriptor>();
+            UpgradePool.Generate(s, null, new List<PassiveItemDefinition> { p }, results);
+            Assert.AreEqual(1, CountKind(results, OptionKind.LevelPassive));
+            Assert.AreEqual(0, CountKind(results, OptionKind.NewPassive), "보유 패시브는 신규 후보 아님");
+            Object.DestroyImmediate(p);
         }
     }
 }

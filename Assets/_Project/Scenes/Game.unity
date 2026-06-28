@@ -7160,12 +7160,9 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 8e77289aa3d1792499c058eb52479046, type: 2}
   - {fileID: 11400000, guid: 1cd2d1f4b555eef458a7c17af52ce8bf, type: 2}
   _passiveCatalog:
-  - {fileID: 11400000, guid: 38b9b73a30631a941b492232e74be9d6, type: 2}
-  - {fileID: 11400000, guid: c6be28c3c31f83d4184a1474fcd594f5, type: 2}
-  - {fileID: 11400000, guid: 9c6cf872cf2602b45a0ca484a0d50d4b, type: 2}
-  - {fileID: 11400000, guid: 1e2b4e902b6f7af4798922e97e9c56c4, type: 2}
-  - {fileID: 11400000, guid: d7eacddb42be1a34497c1b8066a69c74, type: 2}
   - {fileID: 11400000, guid: f2c6b2c804d19b14a836ab22d22f093c, type: 2}
+  - {fileID: 11400000, guid: 05e5f93e01e9d8847a8de5debeb2217c, type: 2}
+  - {fileID: 11400000, guid: 8972fa9a7351d164dbcb0457b2d74112, type: 2}
   _choiceCount: 3
   _maxWeapons: 6
   _maxPassives: 6
