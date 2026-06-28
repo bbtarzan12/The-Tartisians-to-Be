@@ -51,7 +51,16 @@
 }
 .xp-fill { background-color: rgb(255, 211, 77); }
 
-.statsrow { flex-direction: row; justify-content: space-between; align-items: center; margin-top: 5px; }
+.statsrow { flex-direction: row; justify-content: flex-end; align-items: center; margin-top: 5px; }
+/* 미니맵(플레이어 중심 레이더) — 좌상단, XP/레벨 행 아래(겹침 방지 여유) */
+.minimap {
+    position: absolute; top: 38px; left: 6px;
+    width: 116px; height: 116px;
+    background-color: rgba(10, 14, 20, 0.82);
+    border-width: 1px; border-color: rgb(255, 207, 82);
+    border-radius: 8px;
+    overflow: hidden;
+}
 .chip {
     flex-direction: row; align-items: center;
     -unity-font-style: bold; font-size: 11px; color: rgb(238, 242, 247);

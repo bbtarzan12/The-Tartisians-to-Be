@@ -12,6 +12,9 @@ namespace Tartisians.Systems.Crowd
     {
         readonly List<Rect> _boxes = new(); // Rect(xMin, zMin, width, depth)
 
+        /// <summary>장애물 박스 목록(XZ Rect). 미니맵 등 읽기 전용 소비자용.</summary>
+        public IReadOnlyList<Rect> Boxes => _boxes;
+
         public void Clear() => _boxes.Clear();
 
         /// <summary>월드 AABB(min/max)를 XZ 박스로 추가한다.</summary>

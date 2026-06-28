@@ -1,9 +1,12 @@
 using System.Collections.Generic;
 using Tartisians.Core.Feedback;
+using Tartisians.Core.Services;
 using Tartisians.Gameplay.Combat;
+using Tartisians.Gameplay.Enemies;
 using Tartisians.Gameplay.Flow;
 using Tartisians.Gameplay.Progression;
 using Tartisians.Gameplay.Weapons;
+using Tartisians.Systems.Crowd;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
@@ -24,11 +27,14 @@ namespace Tartisians.UI
         GameDirector _director;
         ProgressionSystem _progression;
         Health _playerHealth;
+        Transform _playerTf;
         BuildState _build;
+        EnemyRegistry _enemies;
+        ObstacleField _obstacles;
 
         Label _lvBadge;
-        Label _killsLabel;
         Label _timerLabel;
+        Minimap _minimap;
         VisualElement _xpFill;
         Label _xpText;
         VisualElement _hpFill;
@@ -64,6 +70,7 @@ namespace Tartisians.UI
             GameObject p = GameObject.FindGameObjectWithTag("Player");
             if (p != null)
             {
+                _playerTf = p.transform;
                 p.TryGetComponent(out _playerHealth);
             }
         }
@@ -129,11 +136,15 @@ namespace Tartisians.UI
 
             var statsrow = new VisualElement();
             statsrow.AddToClassList("statsrow");
-            _killsLabel = new Label("0");
             _timerLabel = new Label("05:00");
-            statsrow.Add(MakeChip(new Color(0.9f, 0.3f, 0.25f), _killsLabel, false));
             statsrow.Add(MakeChip(new Color(1f, 0.81f, 0.32f), _timerLabel, true));
             topbar.Add(statsrow);
+
+            // 미니맵(플레이어 중심 레이더) — 처치수 자리에 좌상단 배치
+            _minimap = new Minimap();
+            _minimap.AddToClassList("minimap");
+            _minimap.pickingMode = PickingMode.Ignore;
+            topbar.Add(_minimap);
             root.Add(topbar);
 
             // 하단: 보유현황 + HP
@@ -236,11 +247,35 @@ namespace Tartisians.UI
                 int m = Mathf.FloorToInt(t / 60f);
                 int s = Mathf.FloorToInt(t % 60f);
                 _timerLabel.text = $"{m:00}:{s:00}";
-                _killsLabel.text = _director.Kills.ToString();
             }
 
             RefreshLoadout();
             RefreshCooldowns();
+            RefreshMinimap();
+        }
+
+        // 미니맵: 서비스(레지스트리/장애물)를 지연 해석하고 매 프레임 다시 그린다.
+        void RefreshMinimap()
+        {
+            if (_minimap == null)
+            {
+                return;
+            }
+
+            if (_enemies == null)
+            {
+                ServiceLocator.TryGet(out _enemies);
+            }
+
+            if (_obstacles == null)
+            {
+                ServiceLocator.TryGet(out _obstacles);
+            }
+
+            _minimap.Player = _playerTf;
+            _minimap.Enemies = _enemies;
+            _minimap.Obstacles = _obstacles;
+            _minimap.MarkDirtyRepaint();
         }
 
         void RefreshLoadout()
@@ -669,6 +704,115 @@ namespace Tartisians.UI
                     mwd.SetNextIndex((ushort)(1 + i));
                     mwd.SetNextIndex((ushort)(2 + i));
                 }
+            }
+        }
+
+        /// <summary>
+        /// 플레이어 중심 레이더 미니맵. 카메라/RenderTexture 없이 좌표를 점으로 직접 그린다(저비용).
+        /// 적=종류색 점(강한 적은 크게), 장애물=회색 사각, 플레이어=중앙 밝은 점. 북쪽 고정(회전 없음).
+        /// </summary>
+        sealed class Minimap : VisualElement
+        {
+            const float WorldRadius = 35f;  // 레이더 반경(월드 유닛)
+            const float StrongHealth = 35f; // 이 이상 최대체력이면 '강한 적'으로 강조
+            static readonly Color32 ObstacleColor = new Color32(92, 98, 114, 235);
+            static readonly Color32 PlayerColor = new Color32(120, 232, 255, 255);
+
+            public Transform Player;
+            public EnemyRegistry Enemies;
+            public ObstacleField Obstacles;
+
+            public Minimap()
+            {
+                pickingMode = PickingMode.Ignore;
+                generateVisualContent += OnGen;
+            }
+
+            void OnGen(MeshGenerationContext mgc)
+            {
+                Rect rect = contentRect;
+                float w = rect.width, h = rect.height;
+                if (w <= 1f || h <= 1f)
+                {
+                    return;
+                }
+
+                float cx = w * 0.5f, cy = h * 0.5f;
+                float scale = Mathf.Min(w, h) * 0.5f / WorldRadius;
+                Vector3 pp = Player != null ? Player.position : Vector3.zero;
+                float r2 = WorldRadius * WorldRadius;
+
+                IReadOnlyList<Rect> boxes = Obstacles != null ? Obstacles.Boxes : null;
+                IReadOnlyList<Enemy> active = Enemies != null ? Enemies.Active : null;
+
+                // 그릴 쿼드 수를 먼저 센다(한 번에 Allocate).
+                int obCount = boxes != null ? boxes.Count : 0;
+                int enCount = 0;
+                if (active != null)
+                {
+                    for (int i = 0; i < active.Count; i++)
+                    {
+                        Enemy e = active[i];
+                        if (e == null) continue;
+                        Vector3 d = e.Position - pp;
+                        if (d.x * d.x + d.z * d.z <= r2) enCount++;
+                    }
+                }
+
+                int quads = obCount + enCount + 1; // +플레이어
+                MeshWriteData mwd = mgc.Allocate(quads * 4, quads * 6);
+                ushort vbase = 0;
+
+                // 장애물(회색 사각) — z up → 화면 y 반전
+                if (boxes != null)
+                {
+                    for (int i = 0; i < boxes.Count; i++)
+                    {
+                        Rect b = boxes[i];
+                        float x0 = cx + (b.xMin - pp.x) * scale;
+                        float x1 = cx + (b.xMax - pp.x) * scale;
+                        float y0 = cy - (b.yMax - pp.z) * scale;
+                        float y1 = cy - (b.yMin - pp.z) * scale;
+                        vbase = AddQuad(mwd, vbase, x0, y0, x1, y1, ObstacleColor);
+                    }
+                }
+
+                // 적 점(반경 내). 강한 적은 더 크게, 색은 적 종류색 재사용.
+                if (active != null)
+                {
+                    for (int i = 0; i < active.Count; i++)
+                    {
+                        Enemy e = active[i];
+                        if (e == null) continue;
+                        Vector3 d = e.Position - pp;
+                        if (d.x * d.x + d.z * d.z > r2) continue;
+                        float sx = cx + d.x * scale;
+                        float sy = cy - d.z * scale;
+                        bool strong = e.Definition != null && e.Definition.MaxHealth >= StrongHealth;
+                        float s = strong ? 2.6f : 1.4f;
+                        Color32 col = e.BlipColor;
+                        vbase = AddQuad(mwd, vbase, sx - s, sy - s, sx + s, sy + s, col);
+                    }
+                }
+
+                // 플레이어(중앙)
+                const float ps = 3f;
+                AddQuad(mwd, vbase, cx - ps, cy - ps, cx + ps, cy + ps, PlayerColor);
+            }
+
+            static ushort AddQuad(MeshWriteData mwd, ushort vbase, float x0, float y0, float x1, float y1, Color32 c)
+            {
+                mwd.SetNextVertex(new Vertex { position = new Vector3(x0, y0, Vertex.nearZ), tint = c });
+                mwd.SetNextVertex(new Vertex { position = new Vector3(x1, y0, Vertex.nearZ), tint = c });
+                mwd.SetNextVertex(new Vertex { position = new Vector3(x1, y1, Vertex.nearZ), tint = c });
+                mwd.SetNextVertex(new Vertex { position = new Vector3(x0, y1, Vertex.nearZ), tint = c });
+                mwd.SetNextIndex(vbase);
+                mwd.SetNextIndex((ushort)(vbase + 1));
+                mwd.SetNextIndex((ushort)(vbase + 2));
+                mwd.SetNextIndex(vbase);
+                mwd.SetNextIndex((ushort)(vbase + 2));
+                mwd.SetNextIndex((ushort)(vbase + 3));
+                return (ushort)(vbase + 4);
             }
         }
     }

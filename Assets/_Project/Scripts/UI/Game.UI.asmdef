@@ -4,7 +4,8 @@
     "references": [
         "Game.Core",
         "Game.Data",
-        "Game.Gameplay"
+        "Game.Gameplay",
+        "Game.Systems"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
