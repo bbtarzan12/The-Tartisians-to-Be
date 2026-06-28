@@ -309,7 +309,8 @@ M1~M6 전 마일스톤 완료. 시작→플레이→자동전투→레벨업(3�
 - ✅ **무기 VFX 완료** — 발사 형태별 4시각 언어(투사체 색/트레일·오라 디스크·관통 빔·궤도 오브)+무기별 색/스케일, `WeaponVfx`. 커밋 30ff87d.
 - ✅ **손맛(피격 연출) 1차 완료** — 적 피격 플래시+스케일 펀치, 떠오르는 데미지 숫자(`DamageNumberLayer`), 임팩트 스파크(`ImpactVfx`), 플레이어 피격 비네트(HUD `DangerMeter`). 순수 로직 `Core.Feedback`(`HitReactState`/`DangerMeter`/`FloatingTextAnim`)+테스트. `EnemyHitEvent` 도입. 테스트 103/103, 플레이 실측. 상세 `docs/08` 9절.
 - ✅ **UI 폴리싱 1차 완료** — HTML 목업 → USS 이식. `Hud.uss` 스타일시트 분리, 다크+금색 팔레트. 상단 레벨 뱃지+XP 바·처치/타이머 칩, 하단 보유현황 아이콘 줄+HP 바(체력 비율 색), 레벨업 카드(종류·색 아이콘·레벨태그·진화 금색강조), 결과 요약 화면. PanelSettings ScaleWithScreenSize(기준 680, 2.0×), 메인 HUD 0.8×. `UpgradeOption`에 표시 메타데이터 추가. 상세 `docs/08` 11절.
-- ⏳ 다음 후보: SFX/사운드(아직 0), 리롤/스킵·카드 아이콘 아트, 화면 흔들림(Cinemachine 임펄스), 난도 곡선+보스/엘리트(Leaf), 메타 progression+캐릭터 선택
+- ✅ **무기 조준/이동 다양성 완료** — 3축 조합(전달×조준×이동). 조준 `WeaponAimMode`(최근접/최다적중/밀집/최저체력, 순수 `WeaponAiming`+테스트), 이동 `ProjectileMotion`(직선/호밍/부메랑/도탄, `Projectile`). 신규 무기 3종(추적 미사일·부메랑·연쇄 도탄), 관통창=최다적중·산탄=밀집 배선. 기본 무기 8종. 테스트 109/109, 플레이 실측. 상세 `docs/08` 8절.
+- ⏳ 다음 후보: 신규 3종 진화형 추가, SFX/사운드(아직 0), 리롤/스킵·카드 아이콘 아트, 화면 흔들림(Cinemachine 임펄스), 난도 곡선+보스/엘리트(Leaf), 메타 progression+캐릭터 선택
 
 ## 작업 흐름 규칙
 - 커밋 메시지 **한국어** (`AGENTS.md`)

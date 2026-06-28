@@ -7155,6 +7155,9 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 216e3bafe46491e46bde1d9a96089ede, type: 2}
   - {fileID: 11400000, guid: 175046fa43513f1489f3d14b6a3a1987, type: 2}
   - {fileID: 11400000, guid: bf7cb07872724bc48898b3e5fb18babf, type: 2}
+  - {fileID: 11400000, guid: 6e51c4ae0f5fc2b49ac341698a60783b, type: 2}
+  - {fileID: 11400000, guid: 8e77289aa3d1792499c058eb52479046, type: 2}
+  - {fileID: 11400000, guid: 1cd2d1f4b555eef458a7c17af52ce8bf, type: 2}
   _passiveCatalog:
   - {fileID: 11400000, guid: 38b9b73a30631a941b492232e74be9d6, type: 2}
   - {fileID: 11400000, guid: c6be28c3c31f83d4184a1474fcd594f5, type: 2}

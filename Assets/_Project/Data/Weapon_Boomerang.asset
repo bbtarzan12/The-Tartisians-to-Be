@@ -10,33 +10,34 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 91d13ca48c053f946a8e530d32c423e2, type: 3}
-  m_Name: Weapon_Lance
+  m_Name: Weapon_Boomerang
   m_EditorClassIdentifier: Game.Data::Tartisians.Data.WeaponDefinition
-  _id: 
-  _displayName: "\uAD00\uD1B5 \uCC3D"
-  _description: 
+  _id: Weapon_Boomerang
+  _displayName: "\uBD80\uBA54\uB791"
+  _description: "\uBC00\uC9D1\uD55C \uC801\uC5D0\uAC8C \uB358\uC838 \uC655\uBCF5\uD558\uBA70
+    2\uD68C \uD0C0\uACA9"
   _icon: {fileID: 0}
-  _fireMode: 3
-  _aimMode: 1
-  _motion: 0
+  _fireMode: 0
+  _aimMode: 2
+  _motion: 2
   _maxLevel: 8
-  _color: {r: 0.4, g: 1, b: 0.45, a: 1}
+  _color: {r: 0.7, g: 1, b: 0.3, a: 1}
   _vfxScale: 1
   _homingTurnRate: 360
   _ricochetRange: 6
   _fireInterval: 1.1
-  _damage: 8
-  _projectileSpeed: 14
-  _pierce: 0
-  _range: 10
-  _lifetime: 2
+  _damage: 6
+  _projectileSpeed: 12
+  _pierce: 99
+  _range: 12
+  _lifetime: 1.6
   _amount: 1
-  _area: 10
-  _damagePerLevel: 1.5
+  _area: 1
+  _damagePerLevel: 2
   _fireRateReducePerLevel: 0.05
   _projectileSpeedPerLevel: 0
   _piercePerLevel: 0
-  _amountPerLevel: 0
-  _areaPerLevel: 0.6
-  _evolvesInto: {fileID: 11400000, guid: c64a5c323f70a5744bc5fa2ea6c8e63c, type: 2}
-  _requiredPassive: {fileID: 11400000, guid: 38b9b73a30631a941b492232e74be9d6, type: 2}
+  _amountPerLevel: 0.34
+  _areaPerLevel: 0
+  _evolvesInto: {fileID: 0}
+  _requiredPassive: {fileID: 0}

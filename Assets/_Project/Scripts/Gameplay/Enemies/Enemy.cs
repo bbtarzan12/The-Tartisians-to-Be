@@ -35,6 +35,7 @@ namespace Tartisians.Gameplay.Enemies
         public EnemyDefinition Definition => _definition;
         public Vector3 Position => _rb != null ? _rb.position : transform.position;
         public bool IsDead => _health != null && _health.IsDead;
+        public float CurrentHealth => _health != null ? _health.Current : 0f; // 조준(최저체력)용
 
         /// <summary>직전 프레임 이동으로 추정한 현재 속도(예측 사격 등에 사용).</summary>
         public Vector3 Velocity { get; private set; }

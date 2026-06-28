@@ -17,9 +17,13 @@ MonoBehaviour:
   _description: 
   _icon: {fileID: 0}
   _fireMode: 1
+  _aimMode: 2
+  _motion: 0
   _maxLevel: 1
   _color: {r: 1, g: 0.28, b: 0.12, a: 1}
   _vfxScale: 1.1
+  _homingTurnRate: 360
+  _ricochetRange: 6
   _fireInterval: 0.6
   _damage: 8
   _projectileSpeed: 14

@@ -15,9 +15,15 @@ namespace Tartisians.Data
         [SerializeField, TextArea] string _description = "";
         [SerializeField] Sprite _icon;
         [SerializeField] WeaponFireMode _fireMode = WeaponFireMode.NearestProjectile;
+        [SerializeField] WeaponAimMode _aimMode = WeaponAimMode.Nearest;       // 표적/방향 선택
+        [SerializeField] ProjectileMotion _motion = ProjectileMotion.Straight; // 투사체 이동 행동
         [SerializeField] int _maxLevel = 8;
         [SerializeField] Color _color = Color.white; // VFX 색(투사체/오라/궤도/빔 공통)
         [SerializeField] float _vfxScale = 1f;       // VFX 크기 배율(진화형은 크게)
+
+        [Header("이동 행동 파라미터")]
+        [SerializeField] float _homingTurnRate = 360f; // 호밍 조향 속도(도/초)
+        [SerializeField] float _ricochetRange = 6f;    // 도탄 시 다음 표적 탐색 반경
 
         [Header("기본 스탯 (Lv1)")]
         [SerializeField] float _fireInterval = 0.6f;
@@ -46,6 +52,10 @@ namespace Tartisians.Data
         public string Description => _description;
         public Sprite Icon => _icon;
         public WeaponFireMode FireMode => _fireMode;
+        public WeaponAimMode AimMode => _aimMode;
+        public ProjectileMotion Motion => _motion;
+        public float HomingTurnRate => Mathf.Max(0f, _homingTurnRate);
+        public float RicochetRange => Mathf.Max(0.5f, _ricochetRange);
         public int MaxLevel => Mathf.Max(1, _maxLevel);
         public Color Color => _color;
         public float VfxScale => Mathf.Max(0.05f, _vfxScale);

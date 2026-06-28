@@ -1,7 +1,7 @@
 # 08. 현재 빌드 기획서 (As-Built)
 
 > 지금 **실제로 구현·동작하는** 게임을 역으로 정리한 문서다. 수치는 코드/에셋의 현재 값이며, 밸런싱·확장 논의의 기준점으로 쓴다. (앞을 내다보는 계획은 `05-roadmap.md`, 이 문서는 "지금 상태")
-> 기준: 손맛(피격 연출) 패스 · 테스트 103/103 (EditMode 90 + PlayMode 13) · 200체 @193fps
+> 기준: UI 폴리싱 + 조준/이동 다양성 패스 · 테스트 109/109 (EditMode 96 + PlayMode 13) · 200체 @193fps
 
 ---
 
@@ -89,19 +89,27 @@ Cinemachine 쿼터뷰. 플레이어 추종(Follow) + 항상 바라봄(HardLookAt
 
 여러 무기를 동시에 보유·레벨업하고 패시브로 전체를 강화하며, 특정 *무기+패시브* 조합이 진화 무기로 합쳐진다. 레벨업 카드는 동적 풀(무기 신규/레벨업 · 패시브 신규/레벨업 · 진화)에서 3택.
 
-**구조**
+**구조 — 3축 조합(전달 × 조준 × 이동)으로 무기 개성을 만든다**
 - `WeaponInstance` — 무기별 레벨 + 자체 발사 타이머. **유효 스탯 = (기본값 SO + 레벨 델타) × 전역 패시브 수정자**.
 - `BuildState` — 보유 무기(최대 6)·패시브(최대 6), 전역 수정자 집계, 진화 판정. `UpgradePool`이 동적 후보 생성 → `UpgradePicker`로 중복 없이 3택.
 - `WeaponController` — 인벤토리 실행기. 무기별 타이머로 fireMode 분기 발사. 시작 무기 = 마력 볼트.
+- **축1 전달(fireMode):** NearestProjectile / SpreadProjectile / AuraField / PierceLine / Orbital
+- **축2 조준(`WeaponAimMode`):** Nearest(최근접) / MostInLine(직선 최다적중) / DensestCluster(밀집 방향) / LowestHealth(최저 체력). 순수 계산은 `WeaponAiming`(BestLaneIndex/DensestClusterIndex, 테스트됨).
+- **축3 이동(`ProjectileMotion`):** Straight / Homing(조향) / Boomerang(왕복) / Ricochet(연쇄). `Projectile`이 매 물리 스텝 적용. 파라미터 = `WeaponDefinition`(HomingTurnRate/RicochetRange).
 
-**기본 무기 5종**
-| 무기 | fireMode | 동작 |
-|------|----------|------|
-| 마력 볼트 | NearestProjectile | 사거리 내 최근접 자동조준·예측사격·LOS·벽충돌 |
-| 서리 오라 | AuraField | 중심 반경 내 전체 즉시 데미지(투사체 없음) |
-| 산탄 | SpreadProjectile | 최근접 방향 부채꼴 다발 |
-| 관통 창 | PierceLine | 최근접 방향 직선 띠 안 전체 즉시 데미지(`WeaponGeometry.PointInLane`) |
-| 궤도 위성 | Orbital | 주위 회전 위성(90°/s) 위치에서 펄스 데미지 |
+**기본 무기 8종**
+| 무기 | fireMode | 조준 | 이동 | 동작 |
+|------|----------|------|------|------|
+| 마력 볼트 | NearestProjectile | 최근접 | 직선 | 안정적 기본기, 예측사격·LOS·벽충돌 |
+| 추적 미사일 | NearestProjectile | 최근접 | **호밍** | 가장 가까운 적을 향해 조향(곡선) |
+| 연쇄 도탄 | NearestProjectile | 최근접 | **도탄** | 명중 후 반경 내 다음 적으로 튕김(pierce=튕김수) |
+| 부메랑 | NearestProjectile | **밀집** | **부메랑** | 밀집 방향으로 던져 왕복 2회 타격(통과) |
+| 산탄 | SpreadProjectile | **밀집** | 직선 | 밀집 방향 부채꼴 다발 |
+| 관통 창 | PierceLine | **최다적중** | (즉시) | 직선 최다적중 방향 띠 안 전체 즉시 데미지 |
+| 서리 오라 | AuraField | (없음) | (추종) | 중심 반경 내 전체 즉시 데미지 |
+| 궤도 위성 | Orbital | (없음) | (회전) | 주위 회전 위성(90°/s) 펄스 데미지 |
+
+신규 3종(추적/도탄/부메랑)은 현재 진화형 없음(추후). 시작=마력 볼트, 카탈로그=서리오라·산탄·관통창·궤도·추적·도탄·부메랑.
 
 **진화 5종 (기본 무기 만렙 + 요구 패시브 만렙 → 진화형으로 교체)**
 | 진화 | 기본 무기 + 요구 패시브 |
@@ -171,7 +179,8 @@ Cinemachine 쿼터뷰. 플레이어 추종(Follow) + 항상 바라봄(HardLookAt
 - 네비게이션: 커스텀 **Flow Field**(NavMesh/A* 미사용, 선호속도 소스) + **PBD 군중 솔버**(`CrowdSolver`, 적-적/적-벽 통합 제약) + 해석적 벽 충돌(`ObstacleField`)
 - 빌드/무기(M8): `WeaponInstance`(정의×레벨×패시브 수정자) · `BuildState`/`UpgradePool`(동적 후보·진화) · `WeaponController` 인벤토리(5 fireMode 분기: Nearest/Spread/Aura/PierceLine/Orbital)
 - 손맛(피격 연출): 적 플래시+펀치 · 데미지 숫자 · 임팩트 스파크 · 플레이어 비네트(순수 로직 `Core.Feedback`)
-- 자동화 테스트 103개(EditMode 90 + PlayMode 13)
+- 무기 다양성 3축: 전달(fireMode) × 조준(`WeaponAimMode`) × 이동(`ProjectileMotion`). 기본 무기 8종(호밍/부메랑/도탄 포함)
+- 자동화 테스트 109개(EditMode 96 + PlayMode 13)
 
 ## 14. 현재 한계 / 미구현 (논의 거리)
 
