@@ -41,5 +41,3 @@ MonoBehaviour:
   - Kind: 2
     MaxLevel: 5
     Step: 0.12
-  _evolvesInto: {fileID: 11400000, guid: c64a5c323f70a5744bc5fa2ea6c8e63c, type: 2}
-  _requiredPassive: {fileID: 11400000, guid: 38b9b73a30631a941b492232e74be9d6, type: 2}

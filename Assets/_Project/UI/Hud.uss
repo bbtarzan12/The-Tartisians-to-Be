@@ -126,17 +126,6 @@
     transition-property: translate; transition-duration: 0.12s;
 }
 .card:hover { translate: 0 -4px; }
-.card-evo {
-    border-left-color: rgb(255, 207, 82); border-right-color: rgb(255, 207, 82);
-    border-top-color: rgb(255, 207, 82); border-bottom-color: rgb(255, 207, 82);
-    background-color: rgb(46, 39, 22);
-}
-.ribbon {
-    font-size: 9px; -unity-font-style: bold; color: rgb(26, 18, 5);
-    background-color: rgb(255, 207, 82);
-    padding-left: 8px; padding-right: 8px; padding-top: 1px; padding-bottom: 1px;
-    border-radius: 8px; margin-bottom: 6px;
-}
 .kind { font-size: 10px; color: rgb(154, 167, 182); margin-bottom: 6px; }
 .card-icon {
     width: 46px; height: 46px; border-radius: 12px;
@@ -156,7 +145,6 @@
 }
 .lvtag { font-size: 11px; -unity-font-style: bold; margin-bottom: 6px; }
 .lvtag-up { color: rgb(102, 255, 115); }
-.lvtag-evo { color: rgb(255, 207, 82); }
 .lvtag-new { color: rgb(154, 167, 182); }
 .desc {
     width: 100%;

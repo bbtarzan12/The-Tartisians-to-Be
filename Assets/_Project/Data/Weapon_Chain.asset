@@ -45,5 +45,3 @@ MonoBehaviour:
   - Kind: 3
     MaxLevel: 5
     Step: 3
-  _evolvesInto: {fileID: 0}
-  _requiredPassive: {fileID: 0}

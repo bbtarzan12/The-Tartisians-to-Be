@@ -475,17 +475,7 @@ namespace Tartisians.UI
         {
             var card = new VisualElement();
             card.AddToClassList("card");
-            if (u.IsEvolution)
-            {
-                card.AddToClassList("card-evo");
-                var ribbon = new Label("진화");
-                ribbon.AddToClassList("ribbon");
-                card.Add(ribbon);
-            }
-            else
-            {
-                card.style.borderTopColor = u.Accent;
-            }
+            card.style.borderTopColor = u.Accent;
 
             var kind = new Label(u.KindLabel);
             kind.AddToClassList("kind");
@@ -524,11 +514,6 @@ namespace Tartisians.UI
 
         static string LevelTagText(UpgradeOption u)
         {
-            if (u.IsEvolution)
-            {
-                return "진화!";
-            }
-
             if (u.KindLabel != null && u.KindLabel.Contains("신규"))
             {
                 return "신규 획득";
@@ -539,11 +524,6 @@ namespace Tartisians.UI
 
         static string LevelTagClass(UpgradeOption u)
         {
-            if (u.IsEvolution)
-            {
-                return "lvtag-evo";
-            }
-
             return u.KindLabel != null && u.KindLabel.Contains("신규") ? "lvtag-new" : "lvtag-up";
         }
 

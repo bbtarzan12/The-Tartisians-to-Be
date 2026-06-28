@@ -51,10 +51,6 @@ namespace Tartisians.Data
         [Header("업그레이드 특성(무기별 선언)")]
         [SerializeField] WeaponTrait[] _traits;
 
-        [Header("진화(보류 — 데이터만 보존)")]
-        [SerializeField] WeaponDefinition _evolvesInto;
-        [SerializeField] PassiveItemDefinition _requiredPassive;
-
         public string Id => string.IsNullOrEmpty(_id) ? name : _id;
         public string DisplayName => _displayName;
         public string Description => _description;
@@ -133,9 +129,5 @@ namespace Tartisians.Data
 
             return 0f;
         }
-
-        public WeaponDefinition EvolvesInto => _evolvesInto;
-        public PassiveItemDefinition RequiredPassive => _requiredPassive;
-        public bool CanEvolve => _evolvesInto != null;
     }
 }
