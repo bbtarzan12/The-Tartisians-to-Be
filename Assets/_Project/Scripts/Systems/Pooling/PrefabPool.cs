@@ -14,6 +14,7 @@ namespace Tartisians.Systems.Pooling
         readonly T _prefab;
         readonly Transform _parent;
         readonly ObjectPool<T> _pool;
+        readonly int _maxSize;
 
         public PrefabPool(
             T prefab,
@@ -24,6 +25,7 @@ namespace Tartisians.Systems.Pooling
         {
             _prefab = prefab != null ? prefab : throw new ArgumentNullException(nameof(prefab));
             _parent = parent;
+            _maxSize = maxSize;
             _pool = new ObjectPool<T>(
                 createFunc: Create,
                 actionOnGet: OnGet,
@@ -36,6 +38,7 @@ namespace Tartisians.Systems.Pooling
 
         public int CountActive => _pool.CountActive;
         public int CountInactive => _pool.CountInactive;
+        public int MaxSize => _maxSize;
 
         public T Get() => _pool.Get();
 

@@ -3527,11 +3527,11 @@ MonoBehaviour:
   _solver:
     VelocityBlend: 0.25
     StabilityIterations: 1
-    MainIterations: 6
+    MainIterations: 4
     Sor: 1.2
     StaticFriction: 0.7
     KineticFriction: 0.4
-    EnableLongRange: 1
+    EnableLongRange: 0
     LongRangeStiffness: 0.5
     LongRangeHorizon: 0.5
     Tau0: 0.3
@@ -3552,6 +3552,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Gameplay::Tartisians.Gameplay.Enemies.EnemySpawner
   _enemyPrefab: {fileID: 5396275663454034428, guid: b0d0cdc946670404fb40c1775da89870, type: 3}
+  _scenario: {fileID: 11400000, guid: 65f8bacdd6771234fa005de447b0788c, type: 2}
   _wave: {fileID: 11400000, guid: 06e03695e232f444aa8ef878bfb40d90, type: 2}
   _target: {fileID: 7397138552064841828}
   _arenaHalfExtent: 58
